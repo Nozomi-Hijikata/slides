@@ -1,3 +1,7 @@
-.slidev-layout.default{
+.slidev-layout.default {
   padding-left: 1.5rem;
+}
+
+.slidev-layout.center h1 {
+  margin: 0;
 }
