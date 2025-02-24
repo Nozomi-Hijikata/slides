@@ -2,9 +2,6 @@
 theme: geist
 colorSchema: light
 
-title: Welcome to Slidev
-# class: text-center
-
 layout: center
 
 drawings:
@@ -22,10 +19,58 @@ mdc: true
 2025/03/07 MS芝浦ビル
 
 ---
-title: new page
-
 layout: center
-
 ---
 
-# Second Page
+# おはようございます！！
+
+
+
+---
+layout: center
+---
+
+# 今日はRubyについてとことん学んでもらいます
+
+---
+layout: center
+---
+
+# なぜか
+
+---
+title: rubykaigi ogp
+layout: image
+image: /public/rubykaigi-ogp.jpg
+---
+
+
+---
+layout: center
+---
+
+# Ruby のことを知らないと、<br/>RubyKaigiは楽しめない
+
+---
+class: text-center
+---
+
+## TODO: Rubyの図を貼る
+
+
+
+---
+layout: center
+---
+
+# RubyKaigiを全力で楽しみ・実りある会にする
+
+
+---
+layout: default
+---
+
+<MyTitle title="お品書き" />
+
+- 午前の部
+- 午後の部
