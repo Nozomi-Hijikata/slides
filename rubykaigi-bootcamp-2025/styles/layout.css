@@ -5,3 +5,13 @@
 .slidev-layout.center h1 {
   margin: 0;
 }
+
+table {
+  min-width: 700px;
+  min-height: 300px;
+  font-size: 1.5rem;
+}
+
+th {
+  font-size: 1rem;
+}
