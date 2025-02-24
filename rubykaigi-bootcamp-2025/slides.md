@@ -71,9 +71,8 @@ layout: default
 ---
 
 # 今日のお品書き
-
 ## 午前の部
-<p class="text-2xl text-black">全体像を把握してもらいます</p>
+<p class="text-2xl text-black">Rubyの言語処理系について全体像を把握してもらいます</p>
 <ul class="text-xl">
   <li>"プログラミング"言語の前提知識</li>
   <li>Rubyの言語処理系におけるプロセスの全体像</li>
@@ -114,12 +113,27 @@ layout: center
 layout: center
 ---
 
-<h1 class="font-bold text-2xl text-black"> でも、<strong class="text-4xl text-black">なぜ</strong>そうなるのか</h1>
+<h1 class="font-bold text-2xl text-black"> でも、<strong class="text-4xl text-black">なぜ？</strong></h1>
 
 
 ---
 layout: center
 ---
 
-# ティンバーゲンの4つの問い
+# <span class="text-xl">そもそも</span>なぜ？<span class="text-xl">とは</span>
+# ティンバーゲンの4つの問い <span class="text-xl">で整理できる</span>
 
+---
+layout: center
+---
+
+## TODO: ティンバーゲンの説明をする w/図
+
+
+---
+layout: center
+---
+
+# <span class="text-xl">今日のBootcampでは</span>メカニズムとしてのなぜ<span class="text-xl">を突き詰めていきます</span>
+
+<p class="text-2xl text-black">そしてその過程でRubyというソフトウェアが<br/>どのように発達/進化(<strong>Develop</strong>)してきたのかの一端を垣間見てほしいです</p>
