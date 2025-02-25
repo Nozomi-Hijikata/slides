@@ -346,20 +346,19 @@ Tree-Walkingで実行する<br/>
 # 処理のイメージなので実際には動かない
 def eval(node)
   case node[:type]  # ノードの種類で分岐
-  when 'integer'
-    node[:value]  # 数値リテラルならそのまま返す
-  when 'string'
-    node[:value]  # 文字列リテラルならそのまま返す
-  when 'array'
+  when 'integer'# 数値リテラル
+    node[:value]  
+  when 'true', 'false' # 真偽値
+    # ...
+  when 'array' # 配列
     node[:entries].map { |entry| eval(entry) }  # 各要素を再帰的に評価
-  when 'hash'
-    node[:entries].transform_values { |value| eval(value) } # 各キーの値を評価
-  when 'true'
-    true
-  when 'false'
-    false
-  else
-    raise "Unknown node type: #{node[:type]}"
+  when 'prefix-expr' # 前置演算子の処理をする
+    left = eval(node[:left])
+    right = eval(node[:right])
+    # ...
+  when 'infix-expr' # 前置演算子の処理をする
+    right = eval(node[:right])
+    # ...
   end
 end
 ```
