@@ -181,12 +181,17 @@ layout: center
 # 「プログラムを実行する」ということについて考えてみます
 
 ---
-layout: center
+layout: default
 ---
 
-<div class='px-8'>
-  <h1>プログラムを実行するには処理系が必要ですね</h1>
-  <p class='text-2xl'>言語仕様と処理系は分けなければいけない。Rubyのソースが動かせるからといって、他の人との処理系と同じかと言われると異なる</p>
+<h1>プログラムを実行するには処理系が必要ですね</h1>
+<div class='flex'>
+  <div>
+    <p class='text-2xl'>言語仕様と処理系は別物。同じRubyのソースが動かせるからといって、他の環境との処理系が同じである保証はない</p>
+  </div>
+  <div>
+    <img src='./public/ruby-intro.png' class='w-full'/>
+  </div>
 </div>
 
 
@@ -230,8 +235,8 @@ graph LR
 </div>
 
 <v-click>
-<p class='text-2xl font-bold text-center'>
-この流れが基本中の基本なので覚えましょう！
+<p class='text-2xl text-center'>
+意外とシンプルですね<br/><span class='font-bold'>この流れが基本中の基本なので覚えましょう！</span>
 </p>
 </v-click>
 
@@ -254,8 +259,8 @@ graph LR
 </div>
 
 <p class='text-xl'>
-実際には、近年だと<a href='https://llvm.org/' target='_blank'>LLVM</a>と呼ばれる基盤の上で、最適化に最適化を重ねているのでもっと複雑です<br/>
-作る側はLLVMに合わせて中間表現を吐き出せばいいので、クロスプラットフォーム対応しやすいメリットがあります
+実際のところ、近年だと<a href='https://llvm.org/' target='_blank'>LLVM</a>と呼ばれる基盤の上で、中間表現を挟みながら最適化に最適化を重ねているのでもっと複雑です。
+作る側はLLVMに合わせて中間表現を吐き出せばいいので、<strong>クロスプラットフォーム対応しやすい</strong>メリットがあります
 </p>
 <div class='w-full flex justify-center'>
   <img src='./public/LLVM.png' class='w-3/5'/>
@@ -265,44 +270,97 @@ graph LR
 ---
 layout: default
 ---
-# CRubyも同じ流れをとります
-
-<p class='text-xl'>
-<span v-mark.underline.red>Ruby1.8まで:</span> 基本はさっきの内容と<strong>同じ</strong>
-</p>
-<div class='w-full flex justify-center mt-16'>
-```mermaid {scale: 1.0}
-graph LR
-    A[ソースコード] -->|字句解析| B[トークン列]
-    B -->|構文解析| C[構文木（AST）]
-    C -->|実行| D[実行結果]
-```
-</div>
-
-
-
----
-layout: default
----
-# CRubyも同じ流れをとります(2回目)
-
-<!-- VMの紹介 -->
+# CRubyが実行されるまでのステップ
 
 <p class='text-xl'>
 <span>Ruby1.8まで:</span> 基本はさっきの内容と<strong>同じ</strong>
 </p>
 <div class='w-full flex justify-center mt-16'>
-```mermaid {scale: 1.0}
+```mermaid {scale: 0.9}
 graph LR
     A[ソースコード] -->|字句解析| B[トークン列]
     B -->|構文解析| C[構文木（AST）]
-    C -->|実行| D[実行結果]
+    C -->|Tree-Walkingで実行| D[実行結果]
+```
+</div>
+
+<v-click>
+  <p class='text-xl text-center font-bold'>
+  このステップを順に追ってみていきましょう
+  </p>
+</v-click>
+
+
+---
+layout: default
+---
+# 字句解析
+
+TODO: tokenを吐き出してみる(演習)
+
+
+---
+layout: default
+---
+# 構文解析
+
+TODO: ASTを吐き出してみる(演習)
+
+
+---
+layout: default
+---
+# 解釈・実行
+
+Tree-Walkingで実行する<br/>
+ひたすら長いcase文があって、再帰的に`eval`を叩いていく
+
+``` rb
+# 処理のイメージなので実際には動かない
+def eval(node)
+  case node[:type]  # ノードの種類で分岐
+  when 'integer'
+    node[:value]  # 数値リテラルならそのまま返す
+  when 'string'
+    node[:value]  # 文字列リテラルならそのまま返す
+  when 'array'
+    node[:entries].map { |entry| eval(entry) }  # 各要素を再帰的に評価
+  when 'hash'
+    node[:entries].transform_values { |value| eval(value) } # 各キーの値を評価
+  when 'true'
+    true
+  when 'false'
+    false
+  else
+    raise "Unknown node type: #{node[:type]}"
+  end
+end
+```
+
+
+---
+layout: default
+---
+# CRubyが実行されるまでのステップ
+
+<!-- VMの紹介 -->
+
+<p class='text-xl'>
+<span>Ruby1.8まで:</span>
+</p>
+<div class='w-full flex justify-center mt-16'>
+```mermaid {scale: 0.9}
+graph LR
+    A[ソースコード] -->|字句解析| B[トークン列]
+    B -->|構文解析| C[構文木（AST）]
+    C -->|Tree-Walkingで実行| D[実行結果]
 ```
 </div>
 
 <v-click>
 <p class='text-xl'>
-Ruby 1.9(2007-12-25リリース)以降: VMが追加された
+<strong>Ruby 1.9</strong>から: VMが追加された
+<span class='text-sm'>(2007-12-25リリース)</span>
 </p>
 <div class='w-full flex justify-center mt-16'>
 ```mermaid {scale: 0.7}
@@ -314,5 +372,3 @@ graph LR
 ```
 </div>
 </v-click>
-
-
