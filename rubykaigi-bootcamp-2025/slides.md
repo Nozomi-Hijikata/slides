@@ -280,12 +280,12 @@ layout: default
 graph LR
     A[ソースコード] -->|字句解析| B[トークン列]
     B -->|構文解析| C[構文木（AST）]
-    C -->|Tree-Walkingで実行| D[実行結果]
+    C -->|解釈・実行| D[実行結果]
 ```
 </div>
 
 <v-click>
-  <p class='text-xl text-center font-bold'>
+  <p class='text-2xl text-center font-bold'>
   このステップを順に追ってみていきましょう
   </p>
 </v-click>
@@ -305,6 +305,13 @@ layout: default
 # 構文解析
 
 TODO: ASTを吐き出してみる(演習)
+
+---
+layout: default
+---
+# この辺の話は午後の部で松舘から
+
+TODO: 松舘のSlack写真をはって、吹き出しつけておく
 
 
 ---
@@ -353,14 +360,14 @@ layout: default
 graph LR
     A[ソースコード] -->|字句解析| B[トークン列]
     B -->|構文解析| C[構文木（AST）]
-    C -->|Tree-Walkingで実行| D[実行結果]
+    C -->|解釈・実行| D[実行結果]
 ```
 </div>
 
 <v-click>
 <p class='text-xl'>
-<strong>Ruby 1.9</strong>から: VMが追加された
-<span class='text-sm'>(2007-12-25リリース)</span>
+  <strong>Ruby 1.9</strong>から: 高速化を目的としてVMが追加された
+  <span class='text-sm'>(2007-12-25リリース)</span>
 </p>
 <div class='w-full flex justify-center mt-16'>
 ```mermaid {scale: 0.7}
@@ -371,4 +378,14 @@ graph LR
     D -->|実行| E[VMが実行]
 ```
 </div>
+</v-click>
+
+<v-click>
+  <p class='text-2xl text-center'>
+    このVMのことを
+    <strong>
+      YARV(Yet Another Ruby VM)
+    </strong>
+    と呼びます
+  </p>
 </v-click>
