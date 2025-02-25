@@ -153,6 +153,9 @@ layout: default
 |至近要因|<span class="font-bold">メカニズムとしてのなぜ</span>|<span class="font-bold">適応としてのなぜ</span>|
 |究極要因|<span class="font-bold">発生</span>|<span class="font-bold">進化</span>|
 
+<a class='inline-block italic text-right' href='https://onlinelibrary.wiley.com/doi/abs/10.1111/j.1439-0310.1963.tb01161.x' target='_blank'>
+  Tinbergen, N. (1963). On aims and methods of ethology.
+</a>
 
 ---
 layout: default
