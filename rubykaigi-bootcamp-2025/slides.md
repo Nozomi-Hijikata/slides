@@ -80,21 +80,28 @@ layout: default
 ---
 
 # 今日のお品書き
-## 午前の部
-<p class="text-2xl text-black">Rubyの言語処理系について全体像を把握してもらいます</p>
-<ul class="text-xl">
-  <li>プログラミング言語処理系の前提知識</li>
-  <li>Rubyの言語処理系におけるプロセスの全体像</li>
-</ul>
+<v-click>
+  <h2> 午前の部 </h2>
+  <p class="text-2xl text-black">Rubyの言語処理系について<strong>全体像</strong>を把握してもらいます</p>
+  <v-click>
+    <ul class="text-xl">
+      <li>プログラミング言語処理系の前提知識</li>
+      <li>Rubyの言語処理系におけるステップの全体像</li>
+    </ul>
+  </v-click>
+</v-click>
 
-## 午後の部
-<p class="text-2xl text-black">より各論的な内容にDeepDiveしていきます</p>
-<ul class="text-xl">
-  <li>Parser周り: Prism, Lrama...</li>
-  <li>並行・並列処理: スレッド/プロセス, 排他処理, イベント駆動, Fiber, Ractor...</li>
-  <li>JITコンパイラの動向: RJIT, YJIT, LBBV, ...</li>
-</ul>
-
+<v-click>
+  <h2> 午後の部 </h2>
+  <p class="text-2xl text-black"><strong>より各論的な内容にDeepDive</strong>していきます</p>
+  <v-click>
+    <ul class="text-xl">
+      <li>Parser周り: Prism, Lrama...</li>
+      <li>並行・並列処理: スレッド/プロセス, 排他処理, イベント駆動, Fiber, Ractor...</li>
+      <li>JITコンパイラの動向: RJIT, YJIT, LBBV, ...</li>
+    </ul>
+  </v-click>
+</v-click>
 
 ---
 layout: center
