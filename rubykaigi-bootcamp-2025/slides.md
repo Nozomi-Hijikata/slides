@@ -52,11 +52,12 @@ layout: center
 # Ruby のことを知らないと、<br/>RubyKaigiは楽しめない
 
 ---
-class: text-center
+layout: center
 ---
 
-## TODO: Rubyの図を貼る
-
+<div class='flex justify-center' >
+  <img src='./public/ruby-intro.png' class='w-3/4'/>
+</div>
 
 
 ---
@@ -64,6 +65,14 @@ layout: center
 ---
 
 # RubyKaigiを全力で楽しみ・実りある会にする
+
+<p class='text-2xl'>そして、そのためには皆さんが主体的に取り組む必要があります</p>
+
+---
+layout: center
+---
+
+# 熱くてワクワクするような1日にしていきましょう！！💪
 
 
 ---
@@ -117,49 +126,51 @@ layout: center
 
 
 ---
-layout: image-left
-image: NikoTinbergen.jpg
+layout: cover
 ---
 
-## <span class="text-xl">そもそも</span>なぜ？<span class="text-xl">を考える上では、</span>
-## ティンバーゲンの4つの問い <br/><span class="text-xl">で整理できる</span>
+<div class='flex flex-row gap-4 justify-center'>
+  <img src='./public/NikoTinbergen.jpg' class='w-1/4'/>
+  <h2 class='m-auto mx-0'> 
+    なぜ？<span class="text-xl">を考える上では、</span><br/>
+    ティンバーゲンの4つの問い<span class="text-xl">で整理できる</span>
+  </h2>
+</div>
 
 ---
-layout: center
+layout: default
 ---
 
 # ティンバーゲンの4つの問い
 
 ||<span class="font-bold">静的</span>|<span class="font-bold">動的</span>|
 |-|---|----|
-|至近要因|メカニズムとしてのなぜ|適応としてのなぜ|
-|究極要因|発生|進化|
+|至近要因|<span class="font-bold">メカニズムとしてのなぜ</span>|<span class="font-bold">適応としてとしてのなぜ</span>|
+|究極要因|<span class="font-bold">発生</span>|<span class="font-bold">進化</span>|
 
 
 ---
-layout: two-cols-header
+layout: default
 ---
 
-# 例:シジュウカラは春になぜ鳴くのか？
+<div class="flex flex-row">
+  <h1>例:シジュウカラは春になぜ鳴くのか？</h1>
+  <img src='/public/sijukara.jpeg' class='w-1/5 pt-4'/>
+</div>
 
-::left::
-## 1. 原因（メカニズム）
-- その行動を引き起こしている直接の原因は何か？
-- （例）季節の変化をどのようにして知るのか？どのようなホルモンが歌生成を促すのか？
+||<span class="font-bold">静的</span>|<span class="font-bold">動的</span>|
+|-|---|----|
+|至近要因|<span class="font-bold">メカニズムとしてのなぜ:</span><br/><span class="text-xl">季節の変化をどのようにして知るのか？どのようなホルモンが歌生成を促すのか？</span>|<span class="font-bold">適応としてのなぜ</span>:<br/><span class="text-xl">歌は、なわばりの維持や配偶獲得という点で、繁殖成功率をどの程度上昇させるか？</span>|
+|究極要因|<span class="font-bold">発生:</span><br/><span class="text-xl"> ヒナから成長してくる間に、鳴き声はどのようにして歌に変わるのか？</span>|<span class="font-bold">進化:</span><br/><span class="text-xl"> 祖先の鳥からの系統において、歌の能力やパターンはどのように変化したのか？></span>|
 
-## 2. 適応（機能）
-- その行動は、どんな機能があるから進化してきたのか？
-- （例）歌は、なわばりの維持や配偶獲得という点で、繁殖成功率をどの程度上昇させるか？
 
-::right::
+---
+layout: center
+---
 
-## 3. 個体発生
-- その行動は、一生の間にどのような発達の経路をたどって完成するのか？
-- （例）ヒナから成長してくる間に、鳴き声はどのようにして歌に変わるのか？
+# <span class="text-xl">今日のBootcampでは </span>Rubyのメカニズムとしてのなぜ<span class="text-xl"> を突き詰めていきます</span>
 
-## 4. 系統発生
-- その行動は、祖先からどういう道筋をたどって出現したのか？
-- （例）祖先の鳥からの系統において、歌の能力やパターンはどのように変化したのか？
+<p class="text-2xl text-black">そしてその過程でRubyというソフトウェアが<br/>どのように発達/進化(<strong>Develop</strong>)してきたのかの一端を垣間見てほしいです</p>
 
 
 
@@ -167,6 +178,40 @@ layout: two-cols-header
 layout: center
 ---
 
-# <span class="text-xl">今日のBootcampでは</span>メカニズムとしてのなぜ<span class="text-xl">を突き詰めていきます</span>
+# 「プログラムを実行する」ということについて考えてみます
 
-<p class="text-2xl text-black">そしてその過程でRubyというソフトウェアが<br/>どのように発達/進化(<strong>Develop</strong>)してきたのかの一端を垣間見てほしいです</p>
+---
+layout: center
+---
+
+<div class='px-8'>
+  <h1>プログラムを実行するには処理系が必要ですね</h1>
+  <p class='text-2xl'>言語仕様と処理系は分けなければいけない。Rubyのソースが動かせるからといって、他の人との処理系と同じかと言われると異なる</p>
+</div>
+
+
+
+---
+layout: default
+---
+
+# Rubyの言語処理系について
+<h2> <span  v-mark.circle.orange>CRuby (MRI)</span></h2>
+<p class='text-xl'>
+Matzが作ったRuby, 所謂Ruby
+MRI (Matz' Ruby Implementation)
+</p>
+
+
+## JRuby
+<p class='text-xl'>
+Java言語で実装されたRubyの処理系。
+RubyのコードをクロスプラットフォームであるJVM（Java Virtual Machine）上で実行でき、Rubyで実装されたコード上でJavaのライブラリが利用可能である。インタプリタ・実行時コンパイラ・事前コンパイラ の3種類が用意されている。
+</p>
+
+[他にもたくさん](https://www.ruby.or.jp/ja/tech/install/ruby/implementations)
+
+
+
+
+
