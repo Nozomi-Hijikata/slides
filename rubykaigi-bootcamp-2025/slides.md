@@ -140,7 +140,7 @@ layout: center
 layout: two-cols-header
 ---
 
-# シジュウカラは春になぜ鳴くのか？
+# 例:シジュウカラは春になぜ鳴くのか？
 
 ::left::
 ## 1. 原因（メカニズム）
