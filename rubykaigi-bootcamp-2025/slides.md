@@ -161,14 +161,14 @@ layout: default
 ||<span class="font-bold">静的</span>|<span class="font-bold">動的</span>|
 |-|---|----|
 |至近要因|<span class="font-bold">メカニズムとしてのなぜ:</span><br/><span class="text-xl">季節の変化をどのようにして知るのか？どのようなホルモンが歌生成を促すのか？</span>|<span class="font-bold">適応としてのなぜ</span>:<br/><span class="text-xl">歌は、なわばりの維持や配偶獲得という点で、繁殖成功率をどの程度上昇させるか？</span>|
-|究極要因|<span class="font-bold">発生:</span><br/><span class="text-xl"> ヒナから成長してくる間に、鳴き声はどのようにして歌に変わるのか？</span>|<span class="font-bold">進化:</span><br/><span class="text-xl"> 祖先の鳥からの系統において、歌の能力やパターンはどのように変化したのか？></span>|
+|究極要因|<span class="font-bold">発生:</span><br/><span class="text-xl"> ヒナから成長してくる間に、鳴き声はどのようにして歌に変わるのか？</span>|<span class="font-bold">進化:</span><br/><span class="text-xl"> 祖先の鳥からの系統において、歌の能力やパターンはどのように変化したのか？</span>|
 
 
 ---
 layout: center
 ---
 
-# <span class="text-xl">今日のBootcampでは </span>Rubyのメカニズムとしてのなぜ<span class="text-xl"> を突き詰めていきます</span>
+<h1 class='!mb-4'><span class="text-xl">今日のBootcampでは </span>Rubyのメカニズムとしてのなぜ<span class="text-xl"> を突き詰めていきます</span></h1>
 
 <p class="text-2xl text-black">そしてその過程でRubyというソフトウェアが<br/>どのように発達/進化(<strong>Develop</strong>)してきたのかの一端を垣間見てほしいです</p>
 
@@ -212,6 +212,107 @@ RubyのコードをクロスプラットフォームであるJVM（Java Virtual 
 [他にもたくさん](https://www.ruby.or.jp/ja/tech/install/ruby/implementations)
 
 
+---
+layout: default
+---
+# インタプリタ型言語の基本
 
+<p class='text-xl'>
+ランタイムで逐次的にソースを解釈して実行するインタプリタ言語では、<br/>基本的には下記のような流れをとります
+</p>
+<div class='w-full flex justify-center mt-16'>
+```mermaid {scale: 1.0}
+graph LR
+    A[ソースコード] -->|字句解析| B[トークン列]
+    B -->|構文解析| C[構文木（AST）]
+    C -->|実行| D[実行結果]
+```
+</div>
+
+<v-click>
+<p class='text-2xl font-bold text-center'>
+この流れが基本中の基本なので覚えましょう！
+</p>
+</v-click>
+
+
+---
+layout: default
+---
+# 参考）コンパイル型言語だと？
+
+<p class='text-xl'>
+事前にコンパイルされるコンパイル型言語（AOT、Ahead of Timeとか言ったりします）だと<br/>下記のような作り方をします
+</p>
+<div class='w-full flex justify-center'>
+```mermaid {scale: 0.8}
+graph LR
+  A[ソースコード<br/>sample.c] -->|コンパイラ| B[オブジェクトファイル<br/>sample.o]
+  B -->|リンカ| C[実行可能なプログラム<br/>a.out]
+  C -->|ロード| D[プロセスとして実行]
+```
+</div>
+
+<p class='text-xl'>
+実際には、近年だと<a href='https://llvm.org/' target='_blank'>LLVM</a>と呼ばれる基盤の上で、最適化に最適化を重ねているのでもっと複雑です<br/>
+作る側はLLVMに合わせて中間表現を吐き出せばいいので、クロスプラットフォーム対応しやすいメリットがあります
+</p>
+<div class='w-full flex justify-center'>
+  <img src='./public/LLVM.png' class='w-3/5'/>
+</div>
+
+
+---
+layout: default
+---
+# CRubyも同じ流れをとります
+
+<p class='text-xl'>
+<span v-mark.underline.red>Ruby1.8まで:</span> 基本はさっきの内容と<strong>同じ</strong>
+</p>
+<div class='w-full flex justify-center mt-16'>
+```mermaid {scale: 1.0}
+graph LR
+    A[ソースコード] -->|字句解析| B[トークン列]
+    B -->|構文解析| C[構文木（AST）]
+    C -->|実行| D[実行結果]
+```
+</div>
+
+
+
+---
+layout: default
+---
+# CRubyも同じ流れをとります(2回目)
+
+<!-- VMの紹介 -->
+
+<p class='text-xl'>
+<span>Ruby1.8まで:</span> 基本はさっきの内容と<strong>同じ</strong>
+</p>
+<div class='w-full flex justify-center mt-16'>
+```mermaid {scale: 1.0}
+graph LR
+    A[ソースコード] -->|字句解析| B[トークン列]
+    B -->|構文解析| C[構文木（AST）]
+    C -->|実行| D[実行結果]
+```
+</div>
+
+<v-click>
+<p class='text-xl'>
+Ruby 1.9(2007-12-25リリース)以降: VMが追加された
+</p>
+<div class='w-full flex justify-center mt-16'>
+```mermaid {scale: 0.7}
+graph LR
+    A[ソースコード] -->|字句解析| B[トークン列]
+    B -->|構文解析| C[構文木（AST）]
+    C -->|バイトコードに変換| D[バイトコード]
+    D -->|実行| E[VMが実行]
+```
+</div>
+</v-click>
 
 
