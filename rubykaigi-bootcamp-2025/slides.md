@@ -130,7 +130,12 @@ layout: cover
 ---
 
 <div class='flex flex-row gap-4 justify-center'>
-  <img src='./public/NikoTinbergen.jpg' class='w-1/4'/>
+  <div class='flex flex-col items-center'>
+    <img src='./public/NikoTinbergen.jpg' class='w-3/5'/>
+    <a class='text-sm' href='https://ja.wikipedia.org/wiki/%E3%83%8B%E3%82%B3%E3%83%BB%E3%83%86%E3%82%A3%E3%83%B3%E3%83%90%E3%83%BC%E3%82%B2%E3%83%B3' target='_blank'>
+      <span class='italic'>Nikolaas Tinbergen</span><br>オランダの動物行動学者・鳥類学者
+    </a>
+  </div>
   <h2 class='m-auto mx-0'> 
     なぜ？<span class="text-xl">を考える上では、</span><br/>
     ティンバーゲンの4つの問い<span class="text-xl">で整理できる</span>
@@ -145,7 +150,7 @@ layout: default
 
 ||<span class="font-bold">静的</span>|<span class="font-bold">動的</span>|
 |-|---|----|
-|至近要因|<span class="font-bold">メカニズムとしてのなぜ</span>|<span class="font-bold">適応としてとしてのなぜ</span>|
+|至近要因|<span class="font-bold">メカニズムとしてのなぜ</span>|<span class="font-bold">適応としてのなぜ</span>|
 |究極要因|<span class="font-bold">発生</span>|<span class="font-bold">進化</span>|
 
 
@@ -168,9 +173,18 @@ layout: default
 layout: center
 ---
 
-<h1 class='!mb-4'><span class="text-xl">今日のBootcampでは </span>Rubyのメカニズムとしてのなぜ<span class="text-xl"> を突き詰めていきます</span></h1>
+<h1 class='!mb-6'>
+  <span class="text-xl">今日のBootcampでは</span>
+  <br>
+  <span v-mark.underline.red>
+  Rubyのメカニズムとしてのなぜ
+  </span>
+  <span class="text-xl">を突き詰めていきます</span>
+</h1>
 
-<p class="text-2xl text-black">そしてその過程でRubyというソフトウェアが<br/>どのように発達/進化(<strong>Develop</strong>)してきたのかの一端を垣間見てほしいです</p>
+<v-click>
+  <p class="text-2xl text-black">そしてその過程でRubyというソフトウェアが<br/>どのように発達/進化(<strong>Develop</strong>)してきたのかの一端を垣間見てほしいです</p>
+</v-click>
 
 
 
@@ -186,10 +200,11 @@ layout: default
 
 <h1>プログラムを実行するには処理系が必要ですね</h1>
 <div class='flex'>
-  <div>
-    <p class='text-2xl'>言語仕様と処理系は別物。同じRubyのソースが動かせるからといって、他の環境との処理系が同じである保証はない</p>
+  <div class='basis-1/2'>
+    <p class='text-2xl'>大前提：<strong>言語仕様と処理系は別物</strong> </p>
+    <p class='text-xl'>同じRubyのソースが動かせるからといって、他の環境との処理系が同じである保証はない</p>
   </div>
-  <div>
+  <div class='basis-1/2'>
     <img src='./public/ruby-intro.png' class='w-full'/>
   </div>
 </div>
@@ -203,8 +218,10 @@ layout: default
 # Rubyの言語処理系について
 <h2> <span  v-mark.circle.orange>CRuby (MRI)</span></h2>
 <p class='text-xl'>
-Matzが作ったRuby, 所謂Ruby
-MRI (Matz' Ruby Implementation)
+  Matzが作ったRuby, <strong>MRI (Matz' Ruby Implementation)</strong>
+</p>
+<p>
+  MRIが実質的にRubyの言語仕様になっている<br><strong>->MRIで取り込まれた機能がRubyの言語仕様として採用される</strong>
 </p>
 
 
