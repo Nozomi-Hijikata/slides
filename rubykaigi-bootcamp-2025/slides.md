@@ -323,22 +323,177 @@ layout: default
 ---
 # 字句解析
 
-TODO: tokenを吐き出してみる(演習)
+<p class='text-xl'>
+  ソースをトークンとして分解する
+</p>
 
+``` rb
+require 'ripper'
+
+example = <<~EXAMPLE
+  def foo(a,b)
+    puts a + b
+  end
+  foo(9,8)
+EXAMPLE
+
+pp Ripper.lex(example)
+```
+<v-click>
+  <p class='text-2xl text-center font-bold'>手元で叩いてみよう↑</p>
+</v-click>
+
+
+---
+layout: default
+---
+
+<p class='text-xl'>
+  [line number, column number], token type, lexeme, tokenを読み取った時の状態
+</p>
+
+```rb {*}{maxHeight: '400px', class:'!children:text-xs'}
+[[[1, 0], :on_kw, "def", FNAME],
+ [[1, 3], :on_sp, " ", FNAME],
+ [[1, 4], :on_ident, "foo", ENDFN],
+ [[1, 7], :on_lparen, "(", BEG|LABEL],
+ [[1, 8], :on_ident, "a", ARG],
+ [[1, 9], :on_comma, ",", BEG|LABEL],
+ [[1, 10], :on_ident, "b", ARG],
+ [[1, 11], :on_rparen, ")", ENDFN],
+ [[1, 12], :on_ignored_nl, "\n", BEG],
+ [[2, 0], :on_sp, "  ", BEG],
+ [[2, 2], :on_ident, "puts", CMDARG],
+ [[2, 6], :on_sp, " ", CMDARG],
+ [[2, 7], :on_ident, "a", END|LABEL],
+ [[2, 8], :on_sp, " ", END|LABEL],
+ [[2, 9], :on_op, "+", BEG],
+ [[2, 10], :on_sp, " ", BEG],
+ [[2, 11], :on_ident, "b", END|LABEL],
+ [[2, 12], :on_nl, "\n", BEG],
+ [[3, 0], :on_kw, "end", END],
+ [[3, 3], :on_nl, "\n", BEG],
+ [[4, 0], :on_ident, "foo", CMDARG],
+ [[4, 3], :on_lparen, "(", BEG|LABEL],
+ [[4, 4], :on_int, "9", END],
+ [[4, 5], :on_comma, ",", BEG|LABEL],
+ [[4, 6], :on_int, "8", END],
+ [[4, 7], :on_rparen, ")", ENDFN],
+ [[4, 8], :on_nl, "\n", BEG]]
+```
+
+---
+layout: default
+---
+# CRubyが実行されるまでのステップ
+
+<div class='w-full flex justify-center mt-16'>
+```mermaid {scale: 0.9}
+graph LR
+    A[ソースコード] -->|字句解析| B[トークン列]
+    B -->|構文解析| C[構文木（AST）]
+    C -->|解釈・実行| D[実行結果]
+    classDef finishStyle fill:#ffcc00,stroke:#333,stroke-width:2px;
+    class A finishStyle
+    class B finishStyle
+```
+</div>
+
+<v-click>
+  <p class='text-2xl text-center font-bold'>
+  トークン列ができた
+  </p>
+</v-click>
 
 ---
 layout: default
 ---
 # 構文解析
 
-TODO: ASTを吐き出してみる(演習)
+<p class='text-xl'>
+  分解したトークンに意味を与え、抽象構文木（Abstract Syntax Tree, AST）を作る
+</p>
+
+``` rb
+require 'ripper'
+
+example = <<~EXAMPLE
+  def foo(a,b)
+    puts a + b
+  end
+  foo(9,8)
+EXAMPLE
+
+pp Ripper.sexp(example)
+```
+
+<v-click>
+  <p class='text-2xl text-center font-bold'>手元で叩いてみよう↑</p>
+</v-click>
 
 ---
 layout: default
 ---
-# この辺の話は午後の部で松舘から
 
-TODO: 松舘のSlack写真をはって、吹き出しつけておく
+<p class='text-xl'>
+  下記のような意味を持つ<br>
+  [line number, column number], token type, lexeme, tokenを読み取った時の状態
+</p>
+
+```rb {*}{maxHeight: '400px', class:'!children:text-xs'}
+[:program,
+ [[:def,
+   [:@ident, "foo", [1, 4]],
+   [:paren,
+    [:params,
+     [[:@ident, "a", [1, 8]], [:@ident, "b", [1, 10]]],
+     nil,nil,nil,nil,nil,nil]],
+   [:bodystmt,
+    [[:command,
+      [:@ident, "puts", [2, 2]],
+      [:args_add_block,
+       [[:binary,
+         [:var_ref, [:@ident, "a", [2, 7]]],
+         :+,
+         [:var_ref, [:@ident, "b", [2, 11]]]]],
+       false]]],nil,nil,nil]],
+  [:method_add_arg,
+   [:fcall, [:@ident, "foo", [4, 0]]],
+   [:arg_paren,
+    [:args_add_block, [[:@int, "9", [4, 4]], [:@int, "8", [4, 6]]], false]]]]]
+```
+
+
+---
+layout: default
+---
+# CRubyが実行されるまでのステップ
+
+<div class='w-full flex justify-center mt-16'>
+```mermaid {scale: 0.9}
+graph LR
+    A[ソースコード] -->|字句解析| B[トークン列]
+    B -->|構文解析| C[構文木（AST）]
+    C -->|解釈・実行| D[実行結果]
+    classDef finishStyle fill:#ffcc00,stroke:#333,stroke-width:2px;
+    class A finishStyle
+    class B finishStyle
+    class C finishStyle
+```
+</div>
+
+<v-click>
+  <p class='text-2xl text-center font-bold'>
+  ASTができた
+  </p>
+</v-click>
+
+
+---
+layout: center
+---
+# 字句解析・構文解析の続きは午後の部で松舘から
+
 
 
 ---
@@ -387,6 +542,11 @@ graph LR
     A[ソースコード] -->|字句解析| B[トークン列]
     B -->|構文解析| C[構文木（AST）]
     C -->|解釈・実行| D[実行結果]
+    classDef finishStyle fill:#ffcc00,stroke:#333,stroke-width:2px;
+    class A finishStyle
+    class B finishStyle
+    class C finishStyle
+    class D finishStyle
 ```
 </div>
 
@@ -400,8 +560,11 @@ graph LR
 graph LR
     A[ソースコード] -->|字句解析| B[トークン列]
     B -->|構文解析| C[構文木（AST）]
-    C -->|バイトコードに変換| D[バイトコード]
+    C -->|コンパイル| D[バイトコード]
     D -->|実行| E[VMが実行]
+    classDef newVMStyle fill:#a0e57b,stroke:#333,stroke-width:2px;
+    class D newVMStyle
+    class E newVMStyle    
 ```
 </div>
 </v-click>
@@ -415,3 +578,207 @@ graph LR
     と呼びます
   </p>
 </v-click>
+
+
+---
+layout: default
+---
+# VM
+## VMとは
+<p class='text-xl'>計算資源のエミュレート。マシンを模倣した仮想なマシン(Virtual Machine)</p>
+
+## VMのメリット
+- <p class='text-xl'>Portabilityが高い</p>
+- <p class='text-xl'>最適化がかけやすい</p>
+
+## VMの例
+- <p class='text-xl'>Java, .NET, Lua, JavaScript(V8)</p>
+and more...
+
+---
+layout: default
+---
+# Portability
+
+<div class="flex flex-col">
+  <div class="flex justify-center">
+``` 
++-----------+  +-----------+  +-----------+
+| 言語 P1   |  | 言語 P2   |  | 言語 P3   |
+|           |  |           |  |           |
++-----------+  +-----------+  +-----------+
+| 環境 E1   |  | 環境 E2   |  | 環境 E3   |
++-----------+  +-----------+  +-----------+
+                    ↓
++-----------------------------------------+
+|             プログラム言語 P            |
++-----------+--+-----------+--+-----------+
+| 中間層 I1 |  | 中間層 I2 |  | 中間層 I3 |
++-----------+  +-----------+  +-----------+
+| 環境 E1   |  | 環境 E2   |  | 環境 E3   |
++-----------+  +-----------+  +-----------+
+```
+
+
+  </div>
+  <div class='p-4 text-xl flex justify-center flex-col gap-2'>
+    <p class='!m-0'>環境単位でn個の処理系を作るのではなく、中間言語で記述された処理系を1つ設ける。</p>
+    <p class='!m-0'>Pの処理系をまるごと作るのは大変だけど、<br><strong>中間層であるIの処理系を環境ごとに作るのはそこまで大変ではない</strong>という発想</p>
+    <a href='https://magazine.rubyist.net/articles/0007/0007-YarvManiacs.html#fn:1' target='_blank'>ref</a>
+  </div>
+</div>
+
+
+
+---
+layout: default
+---
+# Portability
+
+<div class="flex flex-col">
+  <div class="flex justify-center">
+``` 
++-----------------------------------------+
+|              Ruby プログラム            |
++-----------+--+-----------+--+-----------+
+|Ruby 処理系|  |Ruby 処理系|  |Ruby 処理系|
++-----------+  +-----------+  +-----------+
+|    C 層   |  |    C 層   |  |    C 層   |
++-----------+  +-----------+  +-----------+
+|   Linux   |  |  Solaris  |  |  Windows  |
++-----------+  +-----------+  +-----------+
+```
+  </div>
+  <div class='p-4 text-xl text-center'>
+    Cで中間言語を処理する環境さえあれば、<br>Rubyを動かすことができる
+  </div>
+</div>
+
+<v-click>
+  <div class='text-2xl text-center'>
+    <strong>ここでいう中間言語がVMが処理するバイトコードになる</strong>
+    <p class='text-lg'>※各OS/CPUアーキテクチャに対応した処理系を作るより、<br>共通のバイトコードを解釈する VM を作る方が簡単</p>
+  </div>
+</v-click>
+
+---
+layout: default
+---
+
+# YARVのバイトコード(ISeq)を理解する
+## dumpしてみる
+``` rb
+example = <<~EXAMPLE
+  def foo(a,b)
+    puts a + b
+  end
+  foo(9,8)
+EXAMPLE
+
+vm = RubyVM::InstructionSequence
+vm.compile_option = false
+iseq = vm.compile(example)
+puts iseq.disasm
+
+```
+
+<v-click>
+  <p class='text-2xl text-center font-bold'>手元で叩いてみよう↑</p>
+</v-click>
+
+---
+layout: full
+---
+<div class='flex justify-center h-full items-center'>
+``` {*}{maxHeight: '400px', class:'!children:text-xs'}
+== disasm: #<ISeq:<compiled>@<compiled>:1 (1,0)-(4,8)>
+0000 definemethod                           :foo, foo                 (   1)[Li]
+0003 putself                                                          (   4)[Li]
+0004 putobject                              9
+0006 putobject                              8
+0008 send                                   <calldata!mid:foo, argc:2, FCALL|ARGS_SIMPLE>, nil
+0011 leave
+
+== disasm: #<ISeq:foo@<compiled>:1 (1,0)-(3,3)>
+local table (size: 2, argc: 2 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1, kwrest: -1])
+[ 2] a@0<Arg>   [ 1] b@1<Arg>
+0000 putself                                                          (   2)[LiCa]
+0001 getlocal                               a@0, 0
+0004 getlocal                               b@1, 0
+0007 send                                   <calldata!mid:+, argc:1, ARGS_SIMPLE>, nil
+0010 send                                   <calldata!mid:puts, argc:1, FCALL|ARGS_SIMPLE>, nil
+0013 leave                                                            (   3)[Re]
+```
+</div>
+
+
+---
+layout: default
+---
+
+<h1>VMの種類</h1>
+<h2><span v-mark.circle.orange>スタックマシン</span></h2>
+<div class='text-xl'>
+  <p>コンパイラが”比較的”楽に作れる</p>
+  <p>ASTをバイトコードにコンパイルする。コンパイルされた命令列を順番に上から実行していく</p>
+</div>
+
+<h2>レジスタマシン</h2>
+<div class='text-xl'>
+  <p>命令レベル並列化など色々早くできるんだが、開発がむずい</p>
+  <p><a href='https://www.lua.org/doc/jucs05.pdf' target='_blank'>Luaなど</a></p>
+</div>
+
+
+<v-after>
+  <p class='text-2xl text-center font-bold'>
+    YARVは2種類のスタックを持つスタックマシン
+  </p>
+</v-after>
+
+
+---
+layout: default
+---
+
+# YARV
+## 2つのスタック
+### 1. <span v-mark.circle.orange>内部スタック</span>
+<p class='text-xl'>値やオブジェクトへの参照を保持する</p>
+
+### 2. 制御フレームスタック
+<p class='text-xl'>メソッド呼び出し/ブロックなどの情報を保持する</p>
+
+
+
+
+
+---
+layout: default
+---
+# YARVを理解する with スタックアニメーション
+
+
+
+---
+layout: default
+---
+
+# 最適化の観点
+## **1. linear であることが重要**
+VM のバイトコードは **直線的（linear）** に並んでおり、これが最適化において重要な役割を果たす。
+- **最適化しやすい**
+  - メソッドキャッシュにより、頻繁に呼ばれるメソッドの結果をキャッシュ
+  - JIT コンパイルでホットスポットをネイティブコードに変換し、高速化
+- **メモリ配置が最適**
+  - メモリ上で **直線的に配置** されるため、L1 / L2 キャッシュにヒットしやすい
+  - ランダムなメモリアクセスが発生しにくく、キャッシュミスが減る
+- **分岐予測に当たりやすい**
+  - **ダイレクトスレッデッドコード（Direct Threaded Code）** などの手法を適用しやすい
+  - 分岐のパターンが単純なため、CPU の **分岐予測が高精度** で当たる
+
+## **2. CPU の観点からのメリット**
+- **レジスタアクセス** は **1 サイクル（1 clock）** で完了
+- **メモリアクセス** は **80～100 サイクル** かかるため、CPU にとって非常に遅い
+- **VM によってメモリアクセスを減らし、レジスタを活用することで高速化**
+
