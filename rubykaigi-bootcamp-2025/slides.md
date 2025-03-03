@@ -155,10 +155,10 @@ layout: default
 
 # ティンバーゲンの4つの問い
 
-||<span class="font-bold">静的</span>|<span class="font-bold">動的</span>|
+||<span class="font-bold">至近要因</span>|<span class="font-bold">究極要因</span>|
 |-|---|----|
-|至近要因|<span class="font-bold">メカニズムとしてのなぜ</span>|<span class="font-bold">適応としてのなぜ</span>|
-|究極要因|<span class="font-bold">発生</span>|<span class="font-bold">進化</span>|
+|静的|<span class="font-bold">メカニズムとしてのなぜ</span>|<span class="font-bold">適応としてのなぜ</span>|
+|動的|<span class="font-bold">発生</span>|<span class="font-bold">進化</span>|
 
 <a class='inline-block italic text-right' href='https://onlinelibrary.wiley.com/doi/abs/10.1111/j.1439-0310.1963.tb01161.x' target='_blank'>
   Tinbergen, N. (1963). On aims and methods of ethology.
@@ -173,10 +173,10 @@ layout: default
   <img src='/public/sijukara.jpeg' class='w-1/5 pt-4'/>
 </div>
 
-||<span class="font-bold">静的</span>|<span class="font-bold">動的</span>|
+||<span class="font-bold">至近要因</span>|<span class="font-bold">究極要因</span>|
 |-|---|----|
-|至近要因|<span class="font-bold">メカニズムとしてのなぜ:</span><br/><span class="text-xl">季節の変化をどのようにして知るのか？どのようなホルモンが歌生成を促すのか？</span>|<span class="font-bold">適応としてのなぜ</span>:<br/><span class="text-xl">歌は、なわばりの維持や配偶獲得という点で、繁殖成功率をどの程度上昇させるか？</span>|
-|究極要因|<span class="font-bold">発生:</span><br/><span class="text-xl"> ヒナから成長してくる間に、鳴き声はどのようにして歌に変わるのか？</span>|<span class="font-bold">進化:</span><br/><span class="text-xl"> 祖先の鳥からの系統において、歌の能力やパターンはどのように変化したのか？</span>|
+|静的|<span class="font-bold">メカニズムとしてのなぜ:</span><br/><span class="text-xl">季節の変化をどのようにして知るのか？どのようなホルモンが歌生成を促すのか？</span>|<span class="font-bold">適応としてのなぜ</span>:<br/><span class="text-xl">歌は、なわばりの維持や配偶獲得という点で、繁殖成功率をどの程度上昇させるか？</span>|
+|動的|<span class="font-bold">発生:</span><br/><span class="text-xl"> ヒナから成長してくる間に、鳴き声はどのようにして歌に変わるのか？</span>|<span class="font-bold">進化:</span><br/><span class="text-xl"> 祖先の鳥からの系統において、歌の能力やパターンはどのように変化したのか？</span>|
 
 
 ---
@@ -645,7 +645,7 @@ layout: default
 +-----------+  +-----------+  +-----------+
 |    C 層   |  |    C 層   |  |    C 層   |
 +-----------+  +-----------+  +-----------+
-|   Linux   |  |  Solaris  |  |  Windows  |
+|   Linux   |  |  Mac      |  |  Windows  |
 +-----------+  +-----------+  +-----------+
 ```
   </div>
@@ -689,7 +689,19 @@ puts iseq.disasm
 ---
 layout: full
 ---
-<div class='flex justify-center h-full items-center'>
+
+<div class='flex flex-col justify-center h-full items-center'>
+<div class="flex items-center">
+<div>
+```rb
+def foo(a,b)
+  ...
+end
+foo(9,8)
+```
+</div>
+<p class="text-2xl font-bold mx-8">→</p>
+<div>
 ``` {*}{maxHeight: '400px', class:'!children:text-xs'}
 == disasm: #<ISeq:<compiled>@<compiled>:1 (1,0)-(4,8)>
 0000 definemethod                           :foo, foo                 (   1)[Li]
@@ -698,7 +710,21 @@ layout: full
 0006 putobject                              8
 0008 send                                   <calldata!mid:foo, argc:2, FCALL|ARGS_SIMPLE>, nil
 0011 leave
+```
+</div>
+</div>
 
+<div class="flex items-center">
+<div>
+```rb
+...
+puts a + b
+...
+```
+</div>
+<p class="text-2xl font-bold mx-8">→</p>
+<div>
+```{*}{maxHeight: '400px', class:'!children:text-xs'}
 == disasm: #<ISeq:foo@<compiled>:1 (1,0)-(3,3)>
 local table (size: 2, argc: 2 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1, kwrest: -1])
 [ 2] a@0<Arg>   [ 1] b@1<Arg>
@@ -710,7 +736,35 @@ local table (size: 2, argc: 2 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1,
 0013 leave                                                            (   3)[Re]
 ```
 </div>
+</div>
+</div>
 
+
+---
+layout: default
+---
+# CRubyが実行されるまでのステップ
+
+<div class='w-full flex justify-center mt-16'>
+```mermaid {scale: 0.8}
+graph LR
+    A[ソースコード] -->|字句解析| B[トークン列]
+    B -->|構文解析| C[構文木（AST）]
+    C -->|コンパイル| D[バイトコード]
+    D -->|実行| E[VMが実行]
+    classDef finishStyle fill:#ffcc00,stroke:#333,stroke-width:2px;
+    class A finishStyle
+    class B finishStyle
+    class C finishStyle
+    class D finishStyle
+```
+</div>
+
+<v-click>
+  <p class='text-2xl text-center font-bold'>
+  バイトコードができた
+  </p>
+</v-click>
 
 ---
 layout: default
@@ -756,7 +810,99 @@ layout: default
 ---
 layout: default
 ---
-# YARVを理解する with スタックアニメーション
+# YARVを理解する
+
+<p class='text-xl'>シンプルなパターンで理解してみる</p>
+
+```rb
+puts 9 + 8
+```
+<p class='text-xl'>バイトコード</p>
+```{*}{maxHeight: '400px'}
+0000 putself
+0001 putobject(9)
+0003 putobject(8)
+0005 send(:+, argc:1)
+0008 send(:puts, argc:1)
+0011 leave
+```
+
+---
+layout: image
+image: vm-simple-stack/simple-stack-1.png
+class: max-w-3xl m-x-auto
+transition: none
+---
+
+---
+layout: image
+image: vm-simple-stack/simple-stack-2.png
+class: max-w-3xl m-x-auto
+transition: none
+---
+
+---
+layout: image
+image: vm-simple-stack/simple-stack-3.png
+class: max-w-3xl m-x-auto
+transition: none
+---
+
+---
+layout: image
+image: vm-simple-stack/simple-stack-4.png
+class: max-w-3xl m-x-auto
+transition: none
+---
+
+---
+layout: image
+image: vm-simple-stack/simple-stack-5.png
+class: max-w-3xl m-x-auto
+transition: none
+---
+
+---
+layout: image
+image: vm-simple-stack/simple-stack-6.png
+class: max-w-3xl m-x-auto
+transition: none
+---
+
+---
+layout: image
+image: vm-simple-stack/simple-stack-7.png
+class: max-w-3xl m-x-auto
+transition: none
+---
+
+---
+layout: image
+image: vm-simple-stack/simple-stack-8.png
+class: max-w-3xl m-x-auto
+transition: none
+---
+
+---
+layout: image
+image: vm-simple-stack/simple-stack-9.png
+class: max-w-3xl m-x-auto
+transition: none
+---
+
+---
+layout: image
+image: vm-simple-stack/simple-stack-10.png
+class: max-w-3xl m-x-auto
+transition: none
+---
+
+---
+layout: image
+image: vm-simple-stack/simple-stack-11.png
+class: max-w-3xl m-x-auto
+transition: none
+---
 
 
 
