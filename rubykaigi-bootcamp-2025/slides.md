@@ -103,10 +103,19 @@ layout: default
   </v-click>
 </v-click>
 
+
+<!-- 午前の部 -->
 ---
 src: ./pages/ruby-process.md
 ---
 
+
+<!-- 午後の部 -->
 ---
 src: ./pages/yjit.md
+---
+
+<!-- 告知 -->
+---
+src: ./pages/closing.md
 ---
