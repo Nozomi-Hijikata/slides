@@ -1165,33 +1165,34 @@ layout: default
 layout: center
 ---
 
-### さて、実はまだ続きがあるのですが、<br>午後に続きを取っておいて、
+# さて、実はまだ続きがあるのですが、<br>午後に続きを取っておいて、
 
 
 ---
 layout: center
 ---
 
-### ここからは実際にRubyで遊んでみましょう
+# ここからは実際にRubyで遊んでみましょう
 
 
 ---
 layout: center
 ---
 
-### お題: RubyをLocalでビルドしてみる
+# お題: RubyをLocalでビルドしてみる
 
 ---
 layout: center
 ---
 
-``` sh
+```sh{*}{maxHeight: '500px', class:'!children:text-sm'}
 # setup
-mkdir rubykaigi-bootcamp && cd rubykaigi-bootcamp
-git clone <ruby repo>
+mkdir rb-camp && cd rb-camp
+git clone <ruby repo >
 cd ruby
 
 # configure fileの生成
+# brew install autoconfが必要な人もいるかも
 ./autogen.sh
 
 # makefileを作る
@@ -1202,9 +1203,9 @@ mkdir build && cd build
 # makeでbuild
 make -j
 
-# うまくいけばminiruby(機能制限つきとはいってもほとんどのことができるRuby)がbuild以下にできているはず
+# うまくいけばminiruby(機能制限つきとはいってもほとんどのことができるRuby)とRubyがbuild以下にできているはず
 ./miniruby -v
-
+./ruby -v
 # install(フルセットRubyのインストール)
 make install
 ../install/bin/ruby -v
@@ -1215,13 +1216,14 @@ make install
 layout: center
 ---
 
-### お題: ビルドしたRubyでプログラムを実行してみる
+# お題: ビルドしたRubyでプログラムを実行してみる
 
 
 ---
 layout: center
 ---
-``` sh
+
+```sh{*}{maxHeight: '500px', class:'!children:text-base'}
 cd ../ruby
 touch test.rb && echo "puts 1 + 2" >> test.rb
 make run # minirubyでtest.rbを実行できる
@@ -1233,16 +1235,21 @@ make runruby # フルセットのRubyで実行する
 layout: center
 ---
 
-### お題: minirubyでdebugしてみる
+# お題: minirubyでdebugしてみる
 
 
 ---
 layout: center
 ---
-``` sh
-cd ../ruby
-touch test.rb && echo "puts 1 + 2" >> test.rb
-make run # minirubyでtest.rbを実行できる
+
+```sh{*}{maxHeight: '500px', class:'!children:text-base'}
+make lldb # minirubyでlldbを使ってdebug
+
+(lldb) r # run
+(lldb) br set -n main # main関数のbreakpoint
+(lldb) br set -f main.c -l 39 # main関数のline#39にbreakpointを貼る
+(lldb) c # continue
+(lldb) s # step in
 ```
 
 
@@ -1250,12 +1257,46 @@ make run # minirubyでtest.rbを実行できる
 layout: center
 ---
 
-### お題: Rubyのversion表記をいじってみる
+## お題: Rubyのversion表記をいじって、自分の名前を差し込んでみる
 
 
 ---
 layout: center
 ---
 
-### お題: Array#secondを足してみる
+<p class="text-xl">1. ruby_show_versionが怪しいからいじってみる</p>
+<p class="text-xl">2. make minirubyしてminirubyをbuildする</p>
+<p class="text-xl">3. 実行して出力を確かめてみる</p>
 
+```sh{*}{maxHeight: '500px', class:'!children:text-base'}
+❯ ./miniruby -v
+==nozomemein==
+ruby 3.5.0dev (2025-02-28T09:32:36Z master db4ea95219) +PRISM [arm64-darwin24]
+```
+
+---
+layout: center
+---
+
+# お疲れ様でした！
+
+
+---
+layout: center
+---
+
+# 午前の部は一旦ここまで
+
+
+---
+layout: center
+---
+
+# お昼休憩🍔を挟んで<br>午後はよりRubyの中身にDeep Diveしていきます
+
+
+---
+layout: center
+---
+
+# お楽しみに！！
