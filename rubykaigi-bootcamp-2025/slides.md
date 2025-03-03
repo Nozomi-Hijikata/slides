@@ -817,7 +817,7 @@ layout: default
 ```rb
 puts 9 + 8
 ```
-<p class='text-xl'>バイトコード</p>
+<p class='text-xl'>生成されるバイトコード</p>
 ```{*}{maxHeight: '400px'}
 0000 putself
 0001 putobject(9)
@@ -862,6 +862,7 @@ class: max-w-3xl m-x-auto
 transition: none
 ---
 
+
 ---
 layout: image
 image: vm-simple-stack/simple-stack-6.png
@@ -904,6 +905,223 @@ class: max-w-3xl m-x-auto
 transition: none
 ---
 
+---
+layout: default
+---
+# YARVを理解する
+
+<p class='text-xl'>メソッド呼び出しのパターン</p>
+
+```rb
+def foo(a,b)
+  puts a + b
+end
+foo(9,8)
+```
+
+---
+layout: full
+---
+
+<div class='flex flex-col justify-center h-full items-center'>
+<div class="flex items-center" v-mark.circle.orange>
+<div>
+```rb
+def foo(a,b)
+  ...
+end
+foo(9,8)
+```
+</div>
+<p class="text-2xl font-bold mx-8">→</p>
+<div>
+``` {*}{maxHeight: '400px', class:'!children:text-xs'}
+== disasm: #<ISeq:<compiled>@<compiled>:1 (1,0)-(4,8)>
+0000 definemethod                           :foo, foo                 (   1)[Li]
+0003 putself                                                          (   4)[Li]
+0004 putobject                              9
+0006 putobject                              8
+0008 send                                   <calldata!mid:foo, argc:2, FCALL|ARGS_SIMPLE>, nil
+0011 leave
+```
+</div>
+</div>
+
+<div class="flex items-center">
+<div>
+```rb
+...
+puts a + b
+...
+```
+</div>
+<p class="text-2xl font-bold mx-8">→</p>
+<div>
+```{*}{maxHeight: '400px', class:'!children:text-xs'}
+== disasm: #<ISeq:foo@<compiled>:1 (1,0)-(3,3)>
+local table (size: 2, argc: 2 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1, kwrest: -1])
+[ 2] a@0<Arg>   [ 1] b@1<Arg>
+0000 putself                                                          (   2)[LiCa]
+0001 getlocal                               a@0, 0
+0004 getlocal                               b@1, 0
+0007 send                                   <calldata!mid:+, argc:1, ARGS_SIMPLE>, nil
+0010 send                                   <calldata!mid:puts, argc:1, FCALL|ARGS_SIMPLE>, nil
+0013 leave                                                            (   3)[Re]
+```
+</div>
+</div>
+</div>
+
+
+
+---
+layout: image
+image: vm-simple-stack/method-stack-1.png
+class: max-w-3xl m-x-auto
+transition: none
+---
+
+---
+layout: image
+image: vm-simple-stack/method-stack-2.png
+class: max-w-3xl m-x-auto
+transition: none
+---
+
+---
+layout: image
+image: vm-simple-stack/method-stack-3.png
+class: max-w-3xl m-x-auto
+transition: none
+---
+
+---
+layout: image
+image: vm-simple-stack/method-stack-4.png
+class: max-w-3xl m-x-auto
+transition: none
+---
+
+---
+layout: image
+image: vm-simple-stack/method-stack-5.png
+class: max-w-3xl m-x-auto
+transition: none
+---
+
+
+
+
+
+---
+layout: full
+---
+
+<div class='flex flex-col justify-center h-full items-center'>
+<div class="flex items-center">
+<div>
+```rb
+def foo(a,b)
+  ...
+end
+foo(9,8)
+```
+</div>
+<p class="text-2xl font-bold mx-8">→</p>
+<div>
+``` {*}{maxHeight: '400px', class:'!children:text-xs'}
+== disasm: #<ISeq:<compiled>@<compiled>:1 (1,0)-(4,8)>
+0000 definemethod                           :foo, foo                 (   1)[Li]
+0003 putself                                                          (   4)[Li]
+0004 putobject                              9
+0006 putobject                              8
+0008 send                                   <calldata!mid:foo, argc:2, FCALL|ARGS_SIMPLE>, nil
+0011 leave
+```
+</div>
+</div>
+
+<div class="flex items-center" v-mark.circle.orange>
+<div>
+```rb
+...
+puts a + b
+...
+```
+</div>
+<p class="text-2xl font-bold mx-8">→</p>
+<div>
+```{*}{maxHeight: '400px', class:'!children:text-xs'}
+== disasm: #<ISeq:foo@<compiled>:1 (1,0)-(3,3)>
+local table (size: 2, argc: 2 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1, kwrest: -1])
+[ 2] a@0<Arg>   [ 1] b@1<Arg>
+0000 putself                                                          (   2)[LiCa]
+0001 getlocal                               a@0, 0
+0004 getlocal                               b@1, 0
+0007 send                                   <calldata!mid:+, argc:1, ARGS_SIMPLE>, nil
+0010 send                                   <calldata!mid:puts, argc:1, FCALL|ARGS_SIMPLE>, nil
+0013 leave                                                            (   3)[Re]
+```
+</div>
+</div>
+</div>
+
+
+---
+layout: image
+image: vm-simple-stack/method-stack-inscope-1.png
+class: max-w-3xl m-x-auto
+transition: none
+---
+
+---
+layout: image
+image: vm-simple-stack/method-stack-inscope-2.png
+class: max-w-3xl m-x-auto
+transition: none
+---
+
+---
+layout: image
+image: vm-simple-stack/method-stack-inscope-3.png
+class: max-w-3xl m-x-auto
+transition: none
+---
+
+---
+layout: image
+image: vm-simple-stack/method-stack-inscope-4.png
+class: max-w-3xl m-x-auto
+transition: none
+---
+
+---
+layout: image
+image: vm-simple-stack/method-stack-inscope-5.png
+class: max-w-3xl m-x-auto
+transition: none
+---
+
+---
+layout: image
+image: vm-simple-stack/method-stack-inscope-6.png
+class: max-w-3xl m-x-auto
+transition: none
+---
+
+---
+layout: image
+image: vm-simple-stack/method-stack-inscope-7.png
+class: max-w-3xl m-x-auto
+transition: none
+---
+
+---
+layout: image
+image: vm-simple-stack/method-stack-inscope-8.png
+class: max-w-3xl m-x-auto
+transition: none
+---
 
 
 ---
