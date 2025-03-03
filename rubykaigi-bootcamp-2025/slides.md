@@ -1128,21 +1128,134 @@ transition: none
 layout: default
 ---
 
-# 最適化の観点
-## **1. linear であることが重要**
-VM のバイトコードは **直線的（linear）** に並んでおり、これが最適化において重要な役割を果たす。
-- **最適化しやすい**
-  - メソッドキャッシュにより、頻繁に呼ばれるメソッドの結果をキャッシュ
-  - JIT コンパイルでホットスポットをネイティブコードに変換し、高速化
-- **メモリ配置が最適**
-  - メモリ上で **直線的に配置** されるため、L1 / L2 キャッシュにヒットしやすい
-  - ランダムなメモリアクセスが発生しにくく、キャッシュミスが減る
-- **分岐予測に当たりやすい**
-  - **ダイレクトスレッデッドコード（Direct Threaded Code）** などの手法を適用しやすい
-  - 分岐のパターンが単純なため、CPU の **分岐予測が高精度** で当たる
+<h1>なぜVMなのか: 最適化の観点</h1>
+<div>
+  <h3>Linear であることが重要</h3>
+  <p>VM のバイトコードは <strong>直線的（linear）</strong> に並んでおり、これが最適化において重要</p>
+</div>
+<ul>
+  <v-click>
+    <li class="mb-6"><strong class="text-xl">頻繁に呼ばれる箇所(ホットスポット)の高速化</strong>
+      <ul>
+        <li>メソッドキャッシュにより、頻繁に呼ばれるメソッドの結果をキャッシュできる</li>
+        <li>JIT コンパイルでホットスポットをネイティブコードに変換し高速化できる</li>
+      </ul>
+    </li>
+  </v-click>
+  <v-click>
+    <li class="mb-6"><strong class="text-xl">メモリ配置によるパフォーマンス改善</strong>
+      <ul>
+        <li>命令列がメモリ上で <strong>直線的に配置</strong> されるため、L1 / L2 キャッシュにヒットしやすい (cf. Tree-Walkingだとrandom access)</li>
+        <li>レジスタアクセスよりもメモリアクセスの方が数十倍 ~ 数百倍遅いので、キャッシュに当てやすくするだけで速くなる</li>
+      </ul>
+    </li>
+  </v-click>
+  <v-click>
+    <li class="mb-6"><strong class="text-xl">分岐予測に当たりやすい</strong>
+      <ul>
+        <li><strong>ダイレクトスレッデッドコード（Direct Threaded Code）</strong> などの手法を適用しやすい</li>
+        <li>分岐のパターンが単純なため(命令に直接ジャンプ)、CPU の <strong>分岐予測が高精度</strong> で当たる</li>
+      </ul>
+    </li>
+  </v-click>
+</ul>
 
-## **2. CPU の観点からのメリット**
-- **レジスタアクセス** は **1 サイクル（1 clock）** で完了
-- **メモリアクセス** は **80～100 サイクル** かかるため、CPU にとって非常に遅い
-- **VM によってメモリアクセスを減らし、レジスタを活用することで高速化**
+
+---
+layout: center
+---
+
+### さて、実はまだ続きがあるのですが、<br>午後に続きを取っておいて、
+
+
+---
+layout: center
+---
+
+### ここからは実際にRubyで遊んでみましょう
+
+
+---
+layout: center
+---
+
+### お題: RubyをLocalでビルドしてみる
+
+---
+layout: center
+---
+
+``` sh
+# setup
+mkdir rubykaigi-bootcamp && cd rubykaigi-bootcamp
+git clone <ruby repo>
+cd ruby
+
+# configure fileの生成
+./autogen.sh
+
+# makefileを作る
+cd ..
+mkdir build && cd build
+../ruby/configure --prefix=$PWD/../install --enable-shared
+
+# makeでbuild
+make -j
+
+# うまくいけばminiruby(機能制限つきとはいってもほとんどのことができるRuby)がbuild以下にできているはず
+./miniruby -v
+
+# install(フルセットRubyのインストール)
+make install
+../install/bin/ruby -v
+```
+
+
+---
+layout: center
+---
+
+### お題: ビルドしたRubyでプログラムを実行してみる
+
+
+---
+layout: center
+---
+``` sh
+cd ../ruby
+touch test.rb && echo "puts 1 + 2" >> test.rb
+make run # minirubyでtest.rbを実行できる
+
+make runruby # フルセットのRubyで実行する
+```
+
+---
+layout: center
+---
+
+### お題: minirubyでdebugしてみる
+
+
+---
+layout: center
+---
+``` sh
+cd ../ruby
+touch test.rb && echo "puts 1 + 2" >> test.rb
+make run # minirubyでtest.rbを実行できる
+```
+
+
+---
+layout: center
+---
+
+### お題: Rubyのversion表記をいじってみる
+
+
+---
+layout: center
+---
+
+### お題: Array#secondを足してみる
 
