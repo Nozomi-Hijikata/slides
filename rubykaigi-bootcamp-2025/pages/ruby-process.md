@@ -110,7 +110,7 @@ layout: default
     <p class='text-xl'>同じRubyのソースが動かせるからといって、他の環境との処理系が同じである保証はない</p>
   </div>
   <div class='basis-1/2'>
-    <img src='./public/ruby-intro.png' class='w-full'/>
+    <img src='/public/ruby-intro.png' class='w-full'/>
   </div>
 </div>
 
@@ -185,7 +185,7 @@ graph LR
 作る側はLLVMに合わせて中間表現を吐き出せばいいので、<strong>クロスプラットフォーム対応しやすい</strong>メリットがあります
 </p>
 <div class='w-full flex justify-center'>
-  <img src='./public/LLVM.png' class='w-3/5'/>
+  <img src='/public/LLVM.png' class='w-3/5'/>
 </div>
 
 
