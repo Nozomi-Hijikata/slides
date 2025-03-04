@@ -33,7 +33,7 @@ layout: cover
 
 <div class='flex flex-row gap-4 justify-center'>
   <div class='flex flex-col items-center'>
-    <img src='./public/NikoTinbergen.jpg' class='w-3/5'/>
+    <img src='/public/NikoTinbergen.jpg' class='w-3/5'/>
     <a class='text-sm' href='https://ja.wikipedia.org/wiki/%E3%83%8B%E3%82%B3%E3%83%BB%E3%83%86%E3%82%A3%E3%83%B3%E3%83%90%E3%83%BC%E3%82%B2%E3%83%B3' target='_blank'>
       <span class='italic'>Nikolaas Tinbergen</span><br>オランダの動物行動学者・鳥類学者
     </a>
