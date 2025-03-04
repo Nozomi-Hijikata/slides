@@ -287,7 +287,7 @@ layout: center
 layout: center
 ---
 
-```c{*}{maxHeight: '400px', class:'!children:text-base'}
+```c{all|8}{maxHeight: '400px', class:'!children:text-base'}
 VALUE
 rb_iseq_eval_main(const rb_iseq_t *iseq)
 {
@@ -307,7 +307,7 @@ rb_iseq_eval_main(const rb_iseq_t *iseq)
 layout: center
 ---
 
-```c{*}{maxHeight: '400px', class:'!children:text-base'}
+```c{all|6}{maxHeight: '400px', class:'!children:text-base'}
 VALUE
 vm_exec(rb_execution_context_t *ec)
 {
@@ -325,7 +325,7 @@ vm_exec(rb_execution_context_t *ec)
 layout: center
 ---
 
-```c{*}{maxHeight: '400px', class:'!children:text-sm'}
+```c{all|8-13}{maxHeight: '400px', class:'!children:text-sm'}
 // vm_exec.c
 static VALUE
 vm_exec_core(rb_execution_context_t *ec)
@@ -408,7 +408,7 @@ vm_exec_core(rb_execution_context_t *ec)
 layout: center
 ---
 
-```c{*}{maxHeight: '400px', class:'!children:text-xs'}
+```c{all|11-19}{maxHeight: '400px', class:'!children:text-xs'}
 static VALUE
 vm_exec_core(rb_execution_context_t *ec)
 {
@@ -427,7 +427,7 @@ vm_exec_core(rb_execution_context_t *ec)
         {
             //... 
         }
-            //...
+        //...
         rb_bug("unknown insn: %"PRIdVALUE, GET_CURRENT_INSN()); 
     }
     //...
@@ -456,7 +456,7 @@ layout: center
 layout: center
 ---
 
-```c{*}{maxHeight: '400px', class:'!children:text-xs'}
+```c{all|11-12,16-17}{maxHeight: '400px', class:'!children:text-xs'}
 static VALUE
 vm_exec_core(rb_execution_context_t *ec)
 {
@@ -496,7 +496,7 @@ layout: default
 
 #### 1. まず現在のPCを取得して、最初の命令へgoto文でそのラベルに直接飛ぶというやり方をしています
 
-```c
+```c{all|2|8}
 // vm_insnhelper.h
 #define GET_CURRENT_INSN() (*GET_PC()) // PCは現在実行しているiseqを指します
 
@@ -513,7 +513,7 @@ layout: default
 
 #### 2. 次に命令列に入って、処理を行います(putobject命令の例)
 
-```c{*}{maxHeight: '400px', class:'!children:text-xs'}
+```c{all|10|13|14}{maxHeight: '400px', class:'!children:text-xs'}
 // vm.inc
 /* insn putobject(val)()(val) */
 INSN_ENTRY(putobject)
@@ -545,7 +545,7 @@ layout: default
 
 #### 3. ENDINSNマクロの内部でTC_DISPATCHを呼び出し次の命令に飛びます
 
-```c{*}{maxHeight: '400px', class:'!children:text-xs'}
+```c{all|7|13|17}{maxHeight: '400px', class:'!children:text-xs'}
 // vm.inc
 /* insn putobject(val)()(val) */
 INSN_ENTRY(putobject)
@@ -555,11 +555,14 @@ INSN_ENTRY(putobject)
     END_INSN(putobject);
 }
 
-// 
+// vm_exec.h
 #define END_INSN(insn)      \
   DEBUG_END_INSN();         \
   TC_DISPATCH(insn);
 
+#define TC_DISPATCH(insn) \
+  INSN_DISPATCH_SIG(insn); \
+  RB_GNUC_EXTENSION_BLOCK(goto *(void const *)GET_CURRENT_INSN());
 ```
 
 
