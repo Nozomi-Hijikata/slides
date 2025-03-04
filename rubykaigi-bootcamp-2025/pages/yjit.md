@@ -47,7 +47,7 @@ layout: default
 
 <h2 v-click> 他の処理系にもJITがある</h2>
 <p class='text-xl' v-click>
-JVM(C1, C2, 階層的コンパイラ)やJavaScript(Turbofan), Dartにも搭載されている機能
+JVM(C1, C2, 階層的コンパイラ)やJavaScript(Turbofan), Dart, SmallTalk...など多くの処理系で採用されている
 </p>
 
 
