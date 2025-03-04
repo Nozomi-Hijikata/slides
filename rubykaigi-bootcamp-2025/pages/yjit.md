@@ -94,6 +94,7 @@ layout: center
 </div>
 
 
+
 ---
 layout: center
 ---
@@ -101,6 +102,26 @@ layout: center
 <div class="flex items-center flex-col">
   <img src="/public/yjit-arch.png" class="w-full"/>
 </div>
+
+
+---
+layout: default
+---
+
+# YJITの特徴
+<h2 class="m-0">Lazy Basic Block Versioning（LBBV）</h2>
+<p class='text-lg'>
+<strong>実行時に型情報を収集し</strong>、それをもとにJITコンパイラにフィードバックする
+
+→不必要な型検査を省略でき、より効率的にコンパイルすることが可能にしている
+
+型情報の収集を事前に行うのではなく、<br><strong>型情報が条件分岐で確定してから収集する形式(可能な限り遅く、lazyに実行する戦略)</strong>をとる。
+
+→JITコンパイラによって生成されるコードが不必要に増えることを防ぐ
+</p>
+
+<a href="https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ECOOP.2015.101" target="_blank">(参考)</a>
+
 
 
 ---
@@ -624,9 +645,8 @@ INSN_ENTRY(send)
 }
 ```
 
-これは`tool/insns2vm.rb`によって`erb`で展開されて、`vm.inc`になる
 
-`JIT_EXEC`マクロでJITを呼び出していそう！！
+`JIT_EXEC`マクロでJITを呼び出している
 
 ---
 layout: center
@@ -760,6 +780,11 @@ C側とABIを揃えるために`pub extern "C"`で揃えている
 
 
 
+---
+layout: center
+---
+
+# 今日の内容はここまで！お疲れ様でした
 
 
 
