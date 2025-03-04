@@ -163,22 +163,18 @@ layout: center
 </div>
 
 
+---
+layout: center
+---
 
+<h1>JIT compileがVMからどう見えているか <span v-click>を考える前に</span></h1>
 
 
 ---
 layout: center
 ---
 
-# そもそもVMってどうやって命令列を捌いているの？
-
-
----
-layout: center
----
-
-# JIT compileがVMからどう見えているか
-
+# そもそもVMってどうやって命令列を捌いているかをみる
 
 ---
 layout: center
@@ -207,6 +203,383 @@ send
 ```
 
 `insns.def`で命令列の定義をしている
+
+
+---
+layout: center
+---
+
+```c{*}{maxHeight: '400px', class:'!children:text-xs'}
+//vm.inc
+/* insn send(cd, blockiseq)(...)(val) */
+INSN_ENTRY(send)
+{
+    /* ###  Declare that we have just entered into an instruction. ### */
+    START_OF_ORIGINAL_INSN(send);
+    /* ###  Declare and assign variables. ### */
+    CALL_DATA cd = (CALL_DATA)GET_OPERAND(1);
+    ISEQ blockiseq = (ISEQ)GET_OPERAND(2);
+    VALUE val;
+    /* ### Instruction preambles. ### */
+    ADD_PC(INSN_ATTR(width));
+    POPN(INSN_ATTR(popn));
+    //...
+    /* ### Here we do the instruction body. ### */
+#   define NAME_OF_CURRENT_INSN send
+#   line 849 "../ruby/insns.def"
+{
+    VALUE bh = vm_caller_setup_arg_block(ec, GET_CFP(), cd->ci, blockiseq, false);
+    val = vm_sendish(ec, GET_CFP(), cd, bh, mexp_search_method);
+    JIT_EXEC(ec, val);
+
+    if (UNDEF_P(val)) {
+        RESTORE_REGS();
+        NEXT_INSN();
+    }
+}
+#   line 2393 "vm.inc"
+#   undef NAME_OF_CURRENT_INSN
+    /* ### Instruction trailers. ### */
+    //...
+    PUSH(val);
+#   undef INSN_ATTR
+    /* ### Leave the instruction. ### */
+    END_INSN(send);
+}
+```
+
+これは`tool/insns2vm.rb`によって`erb`で展開されて、`vm.inc`になる
+
+
+---
+layout: center
+---
+
+```c{*}{maxHeight: '400px', class:'!children:text-base'}
+VALUE
+rb_iseq_eval_main(const rb_iseq_t *iseq)
+{
+    rb_execution_context_t *ec = GET_EC();
+    VALUE val;
+
+    vm_set_main_stack(ec, iseq);
+    val = vm_exec(ec);
+    return val;
+}
+```
+
+RubyのVMのメインのループはここから始まる
+
+
+---
+layout: center
+---
+
+```c{*}{maxHeight: '400px', class:'!children:text-base'}
+VALUE
+vm_exec(rb_execution_context_t *ec)
+{
+    VALUE result = Qundef;
+    // fallback処理とかしているが一旦省略
+    result = vm_exec_core(ec);
+    return result;
+}
+```
+
+`vm_exec_core`がループの実体
+
+
+---
+layout: center
+---
+
+```c{*}{maxHeight: '400px', class:'!children:text-sm'}
+// vm_exec.c
+static VALUE
+vm_exec_core(rb_execution_context_t *ec)
+{
+    reg_cfp = ec->cfp; // execution contextのcfpをregisterにコピーする
+    reg_pc = reg_cfp->pc; // pcについても同様
+
+  first:
+    INSN_DISPATCH();
+/*****************/
+ #include "vm.inc"
+/*****************/
+    END_INSNS_DISPATCH();
+
+    /* unreachable */
+    rb_bug("vm_eval: unreachable");
+    goto first;
+}
+```
+
+このマクロ(`INSN_DISPATCH`, `END_INSNS_DISPATCH`)が熱い
+
+---
+layout: center
+---
+
+```c{*}{maxHeight: '400px', class:'!children:text-sm'}
+// vm_exec.h
+#define INSN_DISPATCH()     \
+  TC_DISPATCH(__START__)    \
+  {
+
+#define END_INSNS_DISPATCH()    \
+      rb_bug("unknown insn: %"PRIdVALUE, GET_CURRENT_INSN());   \
+  }   /* end of while loop */   \
+
+
+#define TC_DISPATCH(insn) \
+  INSN_DISPATCH_SIG(insn); \
+  RB_GNUC_EXTENSION_BLOCK(goto *(void const *)GET_CURRENT_INSN());
+```
+
+このマクロを展開してみると、
+
+---
+layout: center
+---
+
+```c{*}{maxHeight: '400px', class:'!children:text-xs'}
+static VALUE
+vm_exec_core(rb_execution_context_t *ec)
+{
+    reg_cfp = ec->cfp; // execution context の cfp を register にコピー
+    reg_pc = reg_cfp->pc; // pc も同様
+
+  first:
+    /* マクロ展開: INSN_DISPATCH() */
+    INSN_DISPATCH_SIG(__START__);
+    RB_GNUC_EXTENSION_BLOCK(goto *(void const *)GET_CURRENT_INSN());
+    {
+
+//*****************/
+#include "vm.inc"
+/*****************/
+
+        /* マクロ展開: END_INSNS_DISPATCH() */
+        rb_bug("unknown insn: %"PRIdVALUE, GET_CURRENT_INSN()); 
+    } /* end of while loop */
+
+    /* unreachable */
+    rb_bug("vm_eval: unreachable");
+    goto first;
+}
+```
+
+なんとなく見えてきた気がしますね。ここに`vm.inc`を展開してみます
+
+
+---
+layout: center
+---
+
+```c{*}{maxHeight: '400px', class:'!children:text-xs'}
+static VALUE
+vm_exec_core(rb_execution_context_t *ec)
+{
+    // ...
+
+  first:
+    INSN_DISPATCH_SIG(__START__);
+    RB_GNUC_EXTENSION_BLOCK(goto *(void const *)GET_CURRENT_INSN());
+    {
+
+        INSN_ENTRY(send)
+        {
+            //... 
+        }
+        INSN_ENTRY(getlocal)
+        {
+            //... 
+        }
+            //...
+        rb_bug("unknown insn: %"PRIdVALUE, GET_CURRENT_INSN()); 
+    }
+    //...
+}
+```
+
+もう一息!
+
+---
+layout: center
+---
+
+```c
+// vm_exec.h
+#define INSN_ENTRY(insn) \
+  LABEL(insn): \
+  INSN_ENTRY_SIG(insn); \
+
+#define LABEL(x)  INSN_LABEL_##x
+```
+
+LABELを展開してあげます
+
+
+---
+layout: center
+---
+
+```c{*}{maxHeight: '400px', class:'!children:text-xs'}
+static VALUE
+vm_exec_core(rb_execution_context_t *ec)
+{
+    // ...
+
+  first:
+    INSN_DISPATCH_SIG(__START__);
+    RB_GNUC_EXTENSION_BLOCK(goto *(void const *)GET_CURRENT_INSN());
+    {
+
+        INSN_LABEL_send:
+        INSN_ENTRY_SIG(send);
+        {
+            //... 
+        }
+        INSN_LABEL_getlocal:
+        INSN_ENTRY_SIG(getlocal);
+        {
+            //... 
+        }
+            //...
+        rb_bug("unknown insn: %"PRIdVALUE, GET_CURRENT_INSN()); 
+    }
+    //...
+}
+```
+
+おおー
+
+
+---
+layout: center
+---
+
+<strong>流れを追ってみてみましょう</strong>
+
+
+<p>1. まず最初の命令へ現在のPCを取得してgoto文でそのラベルに直接飛ぶというやり方をしています</p>
+
+```c
+// vm_insnhelper.h
+#define GET_CURRENT_INSN() (*GET_PC()) // PCは現在実行しているiseqを指します
+
+
+// vm_exec_core内
+first:
+    INSN_DISPATCH_SIG(__START__);
+    RB_GNUC_EXTENSION_BLOCK(goto *(void const *)GET_CURRENT_INSN());
+```
+
+---
+layout: center
+---
+
+<p>2. 次に命令列に入って、処理を行います(putobject命令の例)</p>
+
+```c{*}{maxHeight: '400px', class:'!children:text-xs'}
+// vm.inc
+/* insn putobject(val)()(val) */
+INSN_ENTRY(putobject)
+{
+    /* ###  Declare and assign variables. ### */
+    VALUE val = (VALUE)GET_OPERAND(1);
+#   define INSN_ATTR(x) attr_ ## x ## _putobject(val)
+
+    /* ### Instruction preambles. ### */
+    ADD_PC(INSN_ATTR(width));
+
+    /* ### Instruction trailers. ### */
+    INC_SP(INSN_ATTR(sp_inc));
+    TOPN(0) = val;
+#   undef INSN_ATTR
+
+    /* ### Leave the instruction. ### */
+    END_INSN(putobject);
+}
+```
+
+内部で`ADD_PC`によるPCの増加と`INC_SP`によるSPの増加をやっています。
+
+最後に`TOPN`マクロでstackに値を積んでいますね
+
+---
+layout: center
+---
+
+<p>3. ENDINSNマクロの内部でTC_DISPATCHを呼び出し次の命令に飛びます</p>
+
+```c{*}{maxHeight: '400px', class:'!children:text-xs'}
+// vm.inc
+/* insn putobject(val)()(val) */
+INSN_ENTRY(putobject)
+{
+    //...
+    /* ### Leave the instruction. ### */
+    END_INSN(putobject);
+}
+
+// 
+#define END_INSN(insn)      \
+  DEBUG_END_INSN();         \
+  TC_DISPATCH(insn);
+
+```
+
+
+---
+layout: center
+---
+
+### あとはこれの繰り返しですね<br>命令に入る→処理をする→SP/PCを変える→TC_DISPATCHで次の命令に飛ぶ
+
+
+---
+layout: center
+---
+
+### ちょっとわかった気がしませんか？
+
+---
+layout: center
+---
+
+<p class="text-xl font-bold">
+send命令などはメソッドキャッシュを探索してから制御フレームを新しくpushして、<br>TC_DISPATCH先が新しいフレームになるようにしていたりします
+</p>
+
+※ 気になる人は`vm_push_frame`を見るといいと思います
+
+---
+layout: center
+---
+
+ちなみに、なぜgoto文で直接ラベルに飛べるかというと、<strong>iseqの配列の中身を事前にlabelのアドレスで置換しています</strong>
+
+深掘りはしないですが、`rb_iseq_translate_threaded_code`の中身を見てもらえると。
+
+<p class="text-xl">このような手法を<strong>ダイレクトスレデッドコード</strong>といったりします</p>
+
+<p class="text-xs">愚直にやるならswith/caseで命令列の分岐を書くと思います。ある程度最適化してくれるんですが、<br>それでも間接ジャンプの数が多いので分岐予測が外れやすいんですね</p>
+
+<p class="text-xs">そこでもう少しだけ頑張ってみるというのが↑の手法です。気になる方は<a href="https://magazine.rubyist.net/articles/0008/0008-YarvManiacs.html" target="_blank">笹田さんのありがたい資料</a>を読むとわかると思います。</p>
+
+
+
+
+
+
+
+---
+layout: center
+---
+
+# JIT compileがVMからどう見えているか
+
 
 ---
 layout: center
