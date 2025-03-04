@@ -23,14 +23,14 @@ layout: center
 layout: center
 ---
 
-## VMでLinearになった命令列ですが<br>もっと最適化をかけることができます
+# VMでLinearになった命令列ですが<br>もっと最適化をかけることができます
 
 
 ---
 layout: center
 ---
 
-## JIT Compiler 🚀
+# JIT Compiler 🚀
 
 ---
 layout: default
@@ -45,7 +45,7 @@ layout: default
 <p class="text-xl" v-click><strong>Rubyだと実行時にYARV命令列の一部を機械語の命令列<span class="text-xs">※</span>に置き換えて実行する方式を取る</strong></p>
 
 
-<h2 v-click> 他の処理系だと</h2>
+<h2 v-click> 他の処理系にもJITがある</h2>
 <p class='text-xl' v-click>
 JVM(C1, C2, 階層的コンパイラ)やJavaScript(Turbofan), Dartにも搭載されている機能
 </p>
@@ -201,6 +201,12 @@ layout: center
 layout: center
 ---
 
+##  命令列はどこで作られるのか
+
+---
+layout: center
+---
+
 ```c{*}{maxHeight: '500px', class:'!children:text-sm'}
 // insns.def
 /* invoke method. */
@@ -223,7 +229,7 @@ send
 }
 ```
 
-`insns.def`で命令列の定義をしている
+### `insns.def`で命令列の定義をしている
 
 
 ---
@@ -269,8 +275,13 @@ INSN_ENTRY(send)
 }
 ```
 
-これは`tool/insns2vm.rb`によって`erb`で展開されて、`vm.inc`になる
+### 命令列を生成するスクリプト（`tool/insns2vm.rb`）により<br>`erb`から`vm.inc`が生成される
 
+---
+layout: center
+---
+
+## VMはどこで命令列をハンドリングするのか
 
 ---
 layout: center
@@ -289,7 +300,7 @@ rb_iseq_eval_main(const rb_iseq_t *iseq)
 }
 ```
 
-RubyのVMのメインのループはここから始まる
+### RubyのVMのメインのループはここから始まる
 
 
 ---
@@ -307,7 +318,7 @@ vm_exec(rb_execution_context_t *ec)
 }
 ```
 
-`vm_exec_core`がループの実体
+### `vm_exec_core`がループの実体
 
 
 ---
@@ -335,7 +346,7 @@ vm_exec_core(rb_execution_context_t *ec)
 }
 ```
 
-このマクロ(`INSN_DISPATCH`, `END_INSNS_DISPATCH`)が熱い
+### このマクロ(`INSN_DISPATCH`, `END_INSNS_DISPATCH`)が熱い
 
 ---
 layout: center
@@ -357,7 +368,7 @@ layout: center
   RB_GNUC_EXTENSION_BLOCK(goto *(void const *)GET_CURRENT_INSN());
 ```
 
-このマクロを展開してみると、
+<p class="text-2xl text-center font-bold">このマクロを展開してみると、</p>
 
 ---
 layout: center
@@ -390,7 +401,7 @@ vm_exec_core(rb_execution_context_t *ec)
 }
 ```
 
-なんとなく見えてきた気がしますね。ここに`vm.inc`を展開してみます
+### なんとなく見えてきた気がしますね。ここで`vm.inc`を展開してみます
 
 
 ---
@@ -423,13 +434,13 @@ vm_exec_core(rb_execution_context_t *ec)
 }
 ```
 
-もう一息!
+<p class="text-2xl text-center font-bold">もう一息!</p>
 
 ---
 layout: center
 ---
 
-```c
+```c{*}{maxHeight: '400px', class:'!children:text-base'}
 // vm_exec.h
 #define INSN_ENTRY(insn) \
   LABEL(insn): \
@@ -438,7 +449,7 @@ layout: center
 #define LABEL(x)  INSN_LABEL_##x
 ```
 
-LABELを展開してあげます
+<p class="text-2xl text-center font-bold">LABELを展開してあげます</p>
 
 
 ---
@@ -473,17 +484,17 @@ vm_exec_core(rb_execution_context_t *ec)
 }
 ```
 
-おおー
+<p class="text-2xl text-center font-bold">おおー</p>
 
 
 ---
-layout: center
+layout: default
 ---
 
-<strong>流れを追ってみてみましょう</strong>
+## <strong>流れを追ってみてみましょう</strong>
 
 
-<p>1. まず最初の命令へ現在のPCを取得してgoto文でそのラベルに直接飛ぶというやり方をしています</p>
+#### 1. まず現在のPCを取得して、最初の命令へgoto文でそのラベルに直接飛ぶというやり方をしています
 
 ```c
 // vm_insnhelper.h
@@ -497,10 +508,10 @@ first:
 ```
 
 ---
-layout: center
+layout: default
 ---
 
-<p>2. 次に命令列に入って、処理を行います(putobject命令の例)</p>
+#### 2. 次に命令列に入って、処理を行います(putobject命令の例)
 
 ```c{*}{maxHeight: '400px', class:'!children:text-xs'}
 // vm.inc
@@ -529,10 +540,10 @@ INSN_ENTRY(putobject)
 最後に`TOPN`マクロでstackに値を積んでいますね
 
 ---
-layout: center
+layout: default
 ---
 
-<p>3. ENDINSNマクロの内部でTC_DISPATCHを呼び出し次の命令に飛びます</p>
+#### 3. ENDINSNマクロの内部でTC_DISPATCHを呼び出し次の命令に飛びます
 
 ```c{*}{maxHeight: '400px', class:'!children:text-xs'}
 // vm.inc
@@ -563,13 +574,13 @@ layout: center
 layout: center
 ---
 
-### ちょっとわかった気がしませんか？
+# ちょっとわかった気がしませんか？
 
 ---
 layout: center
 ---
 
-<p class="text-xl font-bold">
+<p class="text-2xl font-bold">
 send命令などはメソッドキャッシュを探索してから制御フレームを新しくpushして、<br>TC_DISPATCH先が新しいフレームになるようにしていたりします
 </p>
 
@@ -579,15 +590,20 @@ send命令などはメソッドキャッシュを探索してから制御フレ�
 layout: center
 ---
 
-ちなみに、なぜgoto文で直接ラベルに飛べるかというと、<strong>iseqの配列の中身を事前にlabelのアドレスで置換しています</strong>
+<div class="flex justify-center flex-col px-8">
+<p class="text-2xl">
+  ちなみに、なぜgoto文で直接ラベルに飛べるかというと、<br><strong>iseqの配列の中身を事前にlabelのアドレスで置換しています</strong>
+</p>
 
 深掘りはしないですが、`rb_iseq_translate_threaded_code`の中身を見てもらえると。
 
-<p class="text-xl">このような手法を<strong>ダイレクトスレデッドコード</strong>といったりします</p>
+<p class="text-2xl">このような手法を<strong>ダイレクトスレデッドコード</strong>といったりします</p>
 
-<p class="text-xs">愚直にやるならswith/caseで命令列の分岐を書くと思います。ある程度最適化してくれるんですが、<br>それでも間接ジャンプの数が多いので分岐予測が外れやすいんですね</p>
+<p class="text-base">愚直にやるならswith/caseで命令列の分岐を書くと思います。ある程度Cコンパイラが機械語を最適化してくれるんですが、<br>それでも間接ジャンプの数が多いので分岐予測が外れやすいんですね。そこでもう少しだけ頑張ってみるというのが↑の手法です。気になる方は<a href="https://magazine.rubyist.net/articles/0008/0008-YarvManiacs.html" target="_blank">笹田さんのありがたい資料</a>を読むとわかると思います。</p>
 
-<p class="text-xs">そこでもう少しだけ頑張ってみるというのが↑の手法です。気になる方は<a href="https://magazine.rubyist.net/articles/0008/0008-YarvManiacs.html" target="_blank">笹田さんのありがたい資料</a>を読むとわかると思います。</p>
+<p class="text-base"></p>
+
+</div>
 
 
 
