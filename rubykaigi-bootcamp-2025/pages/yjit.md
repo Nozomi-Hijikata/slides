@@ -625,7 +625,7 @@ layout: center
 layout: center
 ---
 
-```c{*}{maxHeight: '400px', class:'!children:text-xs'}
+```c{all|21}{maxHeight: '400px', class:'!children:text-xs'}
 //vm.inc
 /* insn send(cd, blockiseq)(...)(val) */
 INSN_ENTRY(send)
@@ -672,7 +672,7 @@ layout: center
 ---
 
 
-```c{*}{maxHeight: '400px', class:'!children:text-xs'}
+```c{all|6}{maxHeight: '400px', class:'!children:text-xs'}
 // vm_exec.h
 // Run the JIT from the interpreter
 #define JIT_EXEC(ec, val) do { \
@@ -695,7 +695,7 @@ layout: center
 ---
 
 
-```c{*}{maxHeight: '400px', class:'!children:text-xs'}
+```c{all|11|12}{maxHeight: '400px', class:'!children:text-xs'}
 // vm.c
 static inline rb_jit_func_t
 jit_compile(rb_execution_context_t *ec)
@@ -728,7 +728,7 @@ layout: center
 ---
 
 
-```c{*}{maxHeight: '400px', class:'!children:text-xs'}
+```c{all|9-10|12-17}{maxHeight: '400px', class:'!children:text-xs'}
 // yjit.c
 void
 rb_yjit_compile_iseq(const rb_iseq_t *iseq, rb_execution_context_t *ec, bool jit_exception)
@@ -765,7 +765,7 @@ typedef VALUE (*rb_jit_func_t)(struct rb_execution_context_struct *, struct rb_c
 layout: center
 ---
 
-```rust
+```rust{all|6|8}
 /// Called from C code to begin compiling a function
 /// NOTE: this should be wrapped in RB_VM_LOCK_ENTER(), rb_vm_barrier() on the C side
 /// If jit_exception is true, compile JIT code for handling exceptions.
