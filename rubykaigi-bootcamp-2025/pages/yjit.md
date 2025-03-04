@@ -5,12 +5,18 @@ layout: center
 # 午後の部
 
 
+---
+layout: center
+---
+
+# みなさんだいぶお疲れかもしれませんが、
+
 
 ---
 layout: center
 ---
 
-# Ruby VMの続きの話をします
+# 最後にRuby VMの続きの話をします
 
 
 ---
@@ -97,5 +103,75 @@ layout: center
 </div>
 
 
-<!-- YJITでどれくらい早くなるのか。手元での検証 -->
+---
+layout: center
+---
 
+# YJITの効果をみてみる
+
+---
+layout: center
+---
+
+```rb{*}{maxHeight: '500px', class:'!children:text-xs'}
+# yjit_bench.rb
+require 'benchmark'
+
+puts "Ruby version: #{RUBY_VERSION}"
+puts "YJIT enabled at start?: #{RubyVM::YJIT.enabled?}"
+
+def hot_method(n)
+  sum = 0
+  n.times { sum += 1 }
+  sum
+end
+
+N = 10_000_000
+
+Benchmark.bm(10) do |x|
+  x.report("No YJIT") do
+    hot_method(N)
+  end
+
+  x.report("YJIT on") do
+    RubyVM::YJIT.enable
+    hot_method(N)
+  end
+end
+```
+
+---
+layout: center
+---
+
+```sh{*}{maxHeight: '500px', class:'!children:text-base'}
+❯ ruby yjit.bench.rb
+Ruby version: 3.4.2
+YJIT enabled at start?: false
+                 user     system      total        real
+No YJIT      0.389221   0.001059   0.390280 (  0.390663)
+YJIT on      0.278871   0.001404   0.280275 (  0.282141)
+```
+
+---
+layout: center
+---
+
+<div class="flex items-center flex-col">
+  <img src="/public/yjit-bench-multi.png" class="w-3/4"/>
+  <a href="https://speakerdeck.com/k0kubun/rubykaigi-2024?slide=2" target="_blank">ref</a>
+</div>
+
+
+---
+layout: default
+---
+
+# JIT compileがどこで/いつ行われているか
+
+
+---
+layout: default
+---
+
+# LBBV
