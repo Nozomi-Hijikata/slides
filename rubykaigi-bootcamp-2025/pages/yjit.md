@@ -163,15 +163,230 @@ layout: center
 </div>
 
 
----
-layout: default
----
 
-# JIT compileがどこで/いつ行われているか
 
 
 ---
-layout: default
+layout: center
 ---
 
-# LBBV
+# そもそもVMってどうやって命令列を捌いているの？
+
+
+---
+layout: center
+---
+
+# JIT compileがVMからどう見えているか
+
+
+---
+layout: center
+---
+
+```c{*}{maxHeight: '500px', class:'!children:text-sm'}
+// insns.def
+/* invoke method. */
+DEFINE_INSN
+send
+(CALL_DATA cd, ISEQ blockiseq)
+(...)
+(VALUE val)
+// attr rb_snum_t sp_inc = sp_inc_of_sendish(cd->ci);
+// attr rb_snum_t comptime_sp_inc = sp_inc_of_sendish(ci);
+{
+    VALUE bh = vm_caller_setup_arg_block(ec, GET_CFP(), cd->ci, blockiseq, false);
+    val = vm_sendish(ec, GET_CFP(), cd, bh, mexp_search_method);
+    JIT_EXEC(ec, val);
+
+    if (UNDEF_P(val)) {
+        RESTORE_REGS();
+        NEXT_INSN();
+    }
+}
+```
+
+`insns.def`で命令列の定義をしている
+
+---
+layout: center
+---
+
+```c{*}{maxHeight: '400px', class:'!children:text-xs'}
+//vm.inc
+/* insn send(cd, blockiseq)(...)(val) */
+INSN_ENTRY(send)
+{
+    /* ###  Declare that we have just entered into an instruction. ### */
+    START_OF_ORIGINAL_INSN(send);
+    /* ###  Declare and assign variables. ### */
+    CALL_DATA cd = (CALL_DATA)GET_OPERAND(1);
+    ISEQ blockiseq = (ISEQ)GET_OPERAND(2);
+    VALUE val;
+    /* ### Instruction preambles. ### */
+    ADD_PC(INSN_ATTR(width));
+    POPN(INSN_ATTR(popn));
+    //...
+    /* ### Here we do the instruction body. ### */
+#   define NAME_OF_CURRENT_INSN send
+#   line 849 "../ruby/insns.def"
+{
+    VALUE bh = vm_caller_setup_arg_block(ec, GET_CFP(), cd->ci, blockiseq, false);
+    val = vm_sendish(ec, GET_CFP(), cd, bh, mexp_search_method);
+    JIT_EXEC(ec, val);
+
+    if (UNDEF_P(val)) {
+        RESTORE_REGS();
+        NEXT_INSN();
+    }
+}
+#   line 2393 "vm.inc"
+#   undef NAME_OF_CURRENT_INSN
+    /* ### Instruction trailers. ### */
+    //...
+    PUSH(val);
+#   undef INSN_ATTR
+    /* ### Leave the instruction. ### */
+    END_INSN(send);
+}
+```
+
+これは`tool/insns2vm.rb`によって`erb`で展開されて、`vm.inc`になる
+
+`JIT_EXEC`マクロでJITを呼び出していそう！！
+
+---
+layout: center
+---
+
+
+```c{*}{maxHeight: '400px', class:'!children:text-xs'}
+// vm_exec.h
+// Run the JIT from the interpreter
+#define JIT_EXEC(ec, val) do { \
+    rb_jit_func_t func; \
+    /* don't run tailcalls since that breaks FINISH */ \
+    if (UNDEF_P(val) && GET_CFP() != ec->cfp && (func = jit_compile(ec))) { \
+        val = func(ec, ec->cfp); \
+        if (ec->tag->state) THROW_EXCEPTION(val); \
+    } \
+} while (0)
+```
+
+`JIT_EXEC`の中身は↑
+
+`jit_compile`が大事そう
+
+
+---
+layout: center
+---
+
+
+```c{*}{maxHeight: '400px', class:'!children:text-xs'}
+// vm.c
+static inline rb_jit_func_t
+jit_compile(rb_execution_context_t *ec)
+{
+    const rb_iseq_t *iseq = ec->cfp->iseq;
+    struct rb_iseq_constant_body *body = ISEQ_BODY(iseq);
+
+    // Increment the ISEQ's call counter and trigger JIT compilation if not compiled
+    if (body->jit_entry == NULL && rb_yjit_enabled_p) {
+        body->jit_entry_calls++;
+        if (rb_yjit_threshold_hit(iseq, body->jit_entry_calls)) {
+            rb_yjit_compile_iseq(iseq, ec, false);
+        }
+    }
+    return body->jit_entry;
+}
+```
+
+`rb_yjit_threshold_hit`で何回メソッドを呼び出しているかのチェックをしていることがわかる
+
+```c
+// Number of calls used to estimate how hot an ISEQ is
+#define YJIT_CALL_COUNT_INTERV 20u // 20回!!
+```
+
+`rb_yjit_compile_iseq`がコンパイルの本体のようだ
+
+---
+layout: center
+---
+
+
+```c{*}{maxHeight: '400px', class:'!children:text-xs'}
+// yjit.c
+void
+rb_yjit_compile_iseq(const rb_iseq_t *iseq, rb_execution_context_t *ec, bool jit_exception)
+{
+    RB_VM_LOCK_ENTER();
+    rb_vm_barrier();
+
+    // Compile a block version starting at the current instruction
+    uint8_t *rb_yjit_iseq_gen_entry_point(const rb_iseq_t *iseq, rb_execution_context_t *ec, bool jit_exception); // defined in Rust
+    uintptr_t code_ptr = (uintptr_t)rb_yjit_iseq_gen_entry_point(iseq, ec, jit_exception);
+
+    if (jit_exception) {
+        iseq->body->jit_exception = (rb_jit_func_t)code_ptr;
+    }
+    else {
+        iseq->body->jit_entry = (rb_jit_func_t)code_ptr;
+    }
+
+    RB_VM_LOCK_LEAVE();
+}
+```
+
+`rb_yjit_iseq_gen_entry_point`がRust側で定義されたjit compilerの実体
+
+こいつが`rb_jit_func_t`という関数へのポインタを返すので、`iseq->body->jit_entry`にキャッシュする
+
+```c
+// vm_core.h
+typedef VALUE (*rb_jit_func_t)(struct rb_execution_context_struct *, struct rb_control_frame_struct *);
+```
+
+
+---
+layout: center
+---
+
+```rust
+/// Called from C code to begin compiling a function
+/// NOTE: this should be wrapped in RB_VM_LOCK_ENTER(), rb_vm_barrier() on the C side
+/// If jit_exception is true, compile JIT code for handling exceptions.
+/// See jit_compile_exception() for details.
+#[no_mangle]
+pub extern "C" fn rb_yjit_iseq_gen_entry_point(iseq: IseqPtr, ec: EcPtr, jit_exception: bool) -> *const u8 {
+    //...
+    let maybe_code_ptr = with_compile_time(|| { gen_entry_point(iseq, ec, jit_exception) });
+
+    match maybe_code_ptr {
+        Some(ptr) => ptr,
+        None => std::ptr::null(),
+    }
+}
+```
+
+Rust側で公開されている`rb_yjit_iseq_gen_entry_point`
+
+C側とABIを揃えるために`pub extern "C"`で揃えている
+
+<p class="text-sm">
+  ※ABI: 関数の引数などに対してどのレジスタを使うのか、戻り値をどこに格納するのか/スタックフレームをどう扱うかなどの規約
+</p>
+
+<v-click>
+  <p class="text-xl font-bold">
+    VMから見ると単にjit compilerが用意してくれた関数をキャッシュしておいてそれを呼び出している
+  </p>
+</v-click>
+
+
+
+
+
+
+
