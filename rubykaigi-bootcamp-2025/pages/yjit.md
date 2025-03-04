@@ -537,7 +537,7 @@ INSN_ENTRY(putobject)
 
 内部で`ADD_PC`によるPCの増加と`INC_SP`によるSPの増加をやっています。
 
-最後に`TOPN`マクロでstackに値を積んでいますね
+最後に`TOPN`でstackに値を積んでいますね
 
 ---
 layout: default
