@@ -374,7 +374,7 @@ layout: center
 layout: center
 ---
 
-```c{*}{maxHeight: '400px', class:'!children:text-xs'}
+```c{all|8-19}{maxHeight: '400px', class:'!children:text-xs'}
 static VALUE
 vm_exec_core(rb_execution_context_t *ec)
 {
