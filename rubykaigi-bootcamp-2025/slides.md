@@ -56,7 +56,7 @@ layout: center
 ---
 
 <div class='flex justify-center' >
-  <img src='./public/ruby-intro.png' class='w-3/4'/>
+  <img src='/public/ruby-intro.png' class='w-3/4'/>
 </div>
 
 
