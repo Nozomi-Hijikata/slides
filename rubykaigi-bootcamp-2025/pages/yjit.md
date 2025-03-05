@@ -792,7 +792,7 @@ C側とABIを揃えるために`pub extern "C"`で揃えている
 
 <v-click>
   <p class="text-xl font-bold">
-    VMから見ると単にjit compilerが用意してくれた関数をキャッシュしておいてそれを呼び出している
+    VMから見るとjit compilerが用意してくれた関数をキャッシュしておいてそれを呼び出している
   </p>
 </v-click>
 
