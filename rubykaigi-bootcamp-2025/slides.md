@@ -59,6 +59,18 @@ layout: center
   <img src='/public/ruby-intro.png' class='w-3/4'/>
 </div>
 
+---
+layout: center
+---
+
+# 前回参加者の声
+
+---
+layout: center
+---
+
+# 本ブートキャンプの目的
+
 
 ---
 layout: center
@@ -66,7 +78,16 @@ layout: center
 
 # RubyKaigiを全力で楽しみ・実りある会にする
 
-<p class='text-2xl'>そして、そのためには皆さんが主体的に取り組む必要があります</p>
+<p class='text-2xl' v-click>だた、そのためには皆さんが主体的に取り組む必要があります</p>
+
+---
+layout: center
+---
+
+# 積極的な質問を歓迎します<br>割り込みをバンバンしてください
+
+
+
 
 ---
 layout: center
@@ -112,10 +133,10 @@ src: ./pages/ruby-process.md
 
 <!-- 午後の部 -->
 ---
-src: ./pages/yjit.md
+# src: ./pages/yjit.md
 ---
 
 <!-- 告知 -->
 ---
-src: ./pages/closing.md
+# src: ./pages/closing.md
 ---

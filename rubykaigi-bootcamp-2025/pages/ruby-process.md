@@ -52,8 +52,8 @@ layout: default
 
 ||<span class="font-bold">至近要因</span>|<span class="font-bold">究極要因</span>|
 |-|---|----|
-|静的|<span class="font-bold">メカニズムとしてのなぜ</span>|<span class="font-bold">適応としてのなぜ</span>|
-|動的|<span class="font-bold">発生</span>|<span class="font-bold">進化</span>|
+|静的|<span class="font-bold" v-click>メカニズムとしてのなぜ</span>|<span class="font-bold" v-click>適応としてのなぜ</span>|
+|動的|<span class="font-bold" v-click>発生</span>|<span class="font-bold" v-click>進化</span>|
 
 <a class='inline-block italic text-right' href='https://onlinelibrary.wiley.com/doi/abs/10.1111/j.1439-0310.1963.tb01161.x' target='_blank'>
   Tinbergen, N. (1963). On aims and methods of ethology.
@@ -70,8 +70,8 @@ layout: default
 
 ||<span class="font-bold">至近要因</span>|<span class="font-bold">究極要因</span>|
 |-|---|----|
-|静的|<span class="font-bold">メカニズムとしてのなぜ:</span><br/><span class="text-xl">季節の変化をどのようにして知るのか？どのようなホルモンが歌生成を促すのか？</span>|<span class="font-bold">適応としてのなぜ</span>:<br/><span class="text-xl">歌は、なわばりの維持や配偶獲得という点で、繁殖成功率をどの程度上昇させるか？</span>|
-|動的|<span class="font-bold">発生:</span><br/><span class="text-xl"> ヒナから成長してくる間に、鳴き声はどのようにして歌に変わるのか？</span>|<span class="font-bold">進化:</span><br/><span class="text-xl"> 祖先の鳥からの系統において、歌の能力やパターンはどのように変化したのか？</span>|
+|静的|<span class="font-bold">メカニズムとしてのなぜ:</span><br/><span class="text-xl" v-click>季節の変化をどのようにして知るのか？どのようなホルモンが歌生成を促すのか？</span>|<span class="font-bold">適応としてのなぜ</span>:<br/><span class="text-xl" v-click>歌は、なわばりの維持や配偶獲得という点で、繁殖成功率をどの程度上昇させるか？</span>|
+|動的|<span class="font-bold">発生:</span><br/><span class="text-xl" v-click> ヒナから成長してくる間に、鳴き声はどのようにして歌に変わるのか？</span>|<span class="font-bold">進化:</span><br/><span class="text-xl" v-click> 祖先の鳥からの系統において、歌の能力やパターンはどのように変化したのか？</span>|
 
 
 ---
@@ -106,10 +106,10 @@ layout: default
 <h1>プログラムを実行するには処理系が必要ですね</h1>
 <div class='flex'>
   <div class='basis-1/2'>
-    <p class='text-2xl'>大前提：<strong>言語仕様と処理系は別物</strong> </p>
-    <p class='text-xl'>同じRubyのソースが動かせるからといって、他の環境との処理系が同じである保証はない</p>
+    <p class='text-2xl'>大前提：<strong v-click>言語仕様と処理系は別物</strong> </p>
+    <p class='text-xl' v-click>同じRubyのソースが動かせるからといって、他の環境との処理系が同じである保証はない</p>
   </div>
-  <div class='basis-1/2'>
+  <div class='basis-1/2' v-click>
     <img src='/public/ruby-intro.png' class='w-full'/>
   </div>
 </div>
@@ -121,22 +121,23 @@ layout: default
 ---
 
 # Rubyの言語処理系について
-<h2> <span  v-mark.circle.orange>CRuby (MRI)</span></h2>
-<p class='text-xl'>
+<h2 v-click> <span>CRuby (MRI)</span></h2>
+<p class='text-xl' v-click>
   Matzが作ったRuby, <strong>MRI (Matz' Ruby Implementation)</strong>
 </p>
-<p>
+<p v-click>
   MRIが実質的にRubyの言語仕様になっている<br><strong>->MRIで取り込まれた機能がRubyの言語仕様として採用される</strong>
 </p>
 
 
-## JRuby
-<p class='text-xl'>
+<h2 v-click>JRuby</h2>
+<p class='text-xl' v-click>
 Java言語で実装されたRubyの処理系。
 RubyのコードをクロスプラットフォームであるJVM（Java Virtual Machine）上で実行でき、Rubyで実装されたコード上でJavaのライブラリが利用可能である。インタプリタ・実行時コンパイラ・事前コンパイラ の3種類が用意されている。
 </p>
 
-[他にもたくさん](https://www.ruby.or.jp/ja/tech/install/ruby/implementations)
+
+<a href="https://www.ruby.or.jp/ja/tech/install/ruby/implementations" target="_blank" v-click>他にもたくさん</a>
 
 
 ---
@@ -144,10 +145,10 @@ layout: default
 ---
 # インタプリタ型言語の基本
 
-<p class='text-xl'>
+<p class='text-xl' v-click>
 ランタイムで逐次的にソースを解釈して実行するインタプリタ言語では、<br/>基本的には下記のような流れをとります
 </p>
-<div class='w-full flex justify-center mt-16'>
+<div class='w-full flex justify-center mt-16' v-click>
 ```mermaid {scale: 1.0}
 graph LR
     A[ソースコード] -->|字句解析| B[トークン列]
@@ -168,10 +169,10 @@ layout: default
 ---
 # 参考）コンパイル型言語だと？
 
-<p class='text-xl'>
+<p class='text-xl' v-click>
 事前にコンパイルされるコンパイル型言語（AOT、Ahead of Timeとか言ったりします）だと<br/>下記のような作り方をします
 </p>
-<div class='w-full flex justify-center'>
+<div class='w-full flex justify-center' v-click>
 ```mermaid {scale: 0.8}
 graph LR
   A[ソースコード<br/>sample.c] -->|コンパイラ| B[オブジェクトファイル<br/>sample.o]
@@ -180,11 +181,11 @@ graph LR
 ```
 </div>
 
-<p class='text-xl'>
+<p class='text-xl' v-click>
 実際のところ、近年だと<a href='https://llvm.org/' target='_blank'>LLVM</a>と呼ばれる基盤の上で、中間表現を挟みながら最適化に最適化を重ねているのでもっと複雑です。
 作る側はLLVMに合わせて中間表現を吐き出せばいいので、<strong>クロスプラットフォーム対応しやすい</strong>メリットがあります
 </p>
-<div class='w-full flex justify-center'>
+<div class='w-full flex justify-center' v-click>
   <img src='/public/LLVM.png' class='w-3/5'/>
 </div>
 
@@ -197,7 +198,7 @@ layout: default
 <p class='text-xl'>
 <span>Ruby1.8まで:</span> 基本はさっきの内容と<strong>同じ</strong>
 </p>
-<div class='w-full flex justify-center mt-16'>
+<div class='w-full flex justify-center mt-16' v-click>
 ```mermaid {scale: 0.9}
 graph LR
     A[ソースコード] -->|字句解析| B[トークン列]
@@ -331,8 +332,8 @@ layout: default
 ---
 
 <p class='text-xl'>
-  下記のような意味を持つ<br>
-  [line number, column number], token type, lexeme, tokenを読み取った時の状態
+  
+  
 </p>
 
 ```rb {*}{maxHeight: '400px', class:'!children:text-xs'}
