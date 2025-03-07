@@ -50,7 +50,7 @@ layout: center
 layout: center
 ---
 
-# xxx,yyy,zzzです！！
+# ショーン,宮田,東地です！！
 
 <p class="text-xl">
 みなさんには、<strong>RubyKaigiの過去の発表から1つ選んで、10 minプレゼン</strong>を行ってもらいます

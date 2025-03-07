@@ -133,10 +133,10 @@ src: ./pages/ruby-process.md
 
 <!-- 午後の部 -->
 ---
-# src: ./pages/yjit.md
+src: ./pages/yjit.md
 ---
 
 <!-- 告知 -->
 ---
-# src: ./pages/closing.md
+src: ./pages/closing.md
 ---

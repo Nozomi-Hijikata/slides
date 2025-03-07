@@ -110,19 +110,38 @@ layout: default
 
 # YJITの特徴
 <h2 class="m-0">Lazy Basic Block Versioning（LBBV）</h2>
-<p class='text-lg'>
+<p class='text-lg' v-click>
 <strong>実行時に型情報を収集し</strong>、それをもとにJITコンパイラにフィードバックする
 
 →不必要な型検査を省略でき、より効率的にコンパイルすることが可能にしている
+</p>
+<p class='text-lg' v-click>
 
 型情報の収集を事前に行うのではなく、<br><strong>型情報が条件分岐で確定してから収集する形式(可能な限り遅く、lazyに実行する戦略)</strong>をとる。
 
 →JITコンパイラによって生成されるコードが不必要に増えることを防ぐ
 </p>
 
-<a href="https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ECOOP.2015.101" target="_blank">(参考)</a>
+<a href="https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ECOOP.2015.101" target="_blank" v-click>(参考)</a>
 
 
+
+---
+layout: center
+---
+
+<div class='flex justify-center' >
+  <img src='/public/lbbv-1.png' class='w-3/5'/>
+</div>
+
+
+---
+layout: center
+---
+
+<div class='flex justify-center' >
+  <img src='/public/lbbv-2.png' class='w-3/5'/>
+</div>
 
 ---
 layout: center
@@ -604,13 +623,24 @@ layout: center
 
 <p class="text-base">愚直にやるならswith/caseで命令列の分岐を書くと思います。ある程度Cコンパイラが機械語を最適化してくれるんですが、<br>それでも間接ジャンプの数が多いので分岐予測が外れやすいんですね。そこでもう少しだけ頑張ってみるというのが↑の手法です。気になる方は<a href="https://magazine.rubyist.net/articles/0008/0008-YarvManiacs.html" target="_blank">笹田さんのありがたい資料</a>を読むとわかると思います。</p>
 
-<p class="text-base"></p>
-
 </div>
 
 
+---
+layout: center
+---
+
+## CPUはパイプライン処理の中で分岐命令があるときに、<br>分岐先を予測して投機的に実行することをしている
+<p class="text-xl">分岐のない命令群を基本ブロック(Basic Block)といったりしますね</p>
 
 
+---
+layout: center
+---
+
+## 分岐予測に外れるとその分パイプラインで進めた処理が無駄になる
+
+<p class="text-base">分岐予測はBranch Target Buffer(BTB)とよばれるユニットで管理され、命令アドレス→飛び先アドレスの形で管理される</p>
 
 
 
@@ -792,10 +822,44 @@ C側とABIを揃えるために`pub extern "C"`で揃えている
 
 <v-click>
   <p class="text-xl font-bold">
-    VMから見るとjit compilerが用意してくれた関数をキャッシュしておいてそれを呼び出している
+    VMから見るとJIT compilerが用意してくれた関数をキャッシュしておいてそれを呼び出している
   </p>
 </v-click>
 
+---
+layout: center
+---
+
+# JIT Compilerが少しずつわかってきた気がしますね!!
+
+
+---
+layout: center
+---
+
+# 今日の内容としては以上ですが、
+
+---
+layout: center
+---
+
+# RubyKaigi本番では<br>JITにまつわる熱いトークが聴けます
+
+---
+layout: center
+---
+
+<div class='flex justify-center' >
+  <img src='/public/2025-k0kubun.png' class='w-3/4'/>
+</div>
+
+---
+layout: center
+---
+
+<div class='flex justify-center' >
+  <img src='/public/2025-maxime.png' class='w-3/4'/>
+</div>
 
 
 
@@ -803,7 +867,14 @@ C側とABIを揃えるために`pub extern "C"`で揃えている
 layout: center
 ---
 
-##  午後の部はこれにて終了です
+# ぜひ挑戦してみてください！！
+
+
+---
+layout: center
+---
+
+##  午後の部は以上です！！🎉
 
 
 
