@@ -180,7 +180,7 @@ layout: center
 
 # でもなんでだ、、、
 
-条件分岐的には↓を見ているので、Hostの情報が抜け落ちていそう、、？
+<p class="text-lg font-bold">条件分岐的には↓を見ているので、<strong>Hostの情報が抜け落ちていそう、、？</strong></p>
 
 ```dart{1}
 if (state.uri.host.isNotEmpty) {
@@ -192,7 +192,38 @@ if (state.uri.host.isNotEmpty) {
 layout: center
 ---
 
-# 分からないから観点を変えてみる
+## 念の為本当にHostが抜け落ちているのかをチェックする
+
+---
+layout: default
+---
+## ディープリンク起動時のURL情報をログ出力
+
+`/`の場合
+```shell{all|1|4}{maxHeight: '450px', class:'!children:text-xs mt-8'}
+❯ adb shell 'am start -W -a android.intent.action.VIEW -d "https://jobhouse.jobhouse-stg.th-svc.net/"'
+LaunchState: COLD
+
+08-18 16:14:30.581  2239  2239 I flutter : redirect: https://jobhouse.jobhouse-stg.th-svc.net/
+```
+
+
+`/`無しの場合
+```shell{all|1|4}{maxHeight: '450px', class:'!children:text-xs mt-8'}
+❯ adb shell 'am start -W -a android.intent.action.VIEW -d "https://jobhouse.jobhouse-stg.th-svc.net"'
+LaunchState: COLD
+
+08-18 16:14:10.282  1941  1941 I flutter : redirect: /? ←ここだけ、redirect: /?になっているぞ！！
+```
+
+
+<p class="text-2xl font-bold text-center" v-click> `/`のときだけ、hostの情報が消えているだと... </p>
+
+---
+layout: center
+---
+
+## ではどこで抜け落ちているのか、、、<br>分からないから観点を変えてみる
 
 
 ---
@@ -221,11 +252,13 @@ layout: center
 layout: center
 ---
 
-## ホスト（Platform/Kotlin）のレイヤーまではきているよね？
+## ホストアプリ（Kotlin）のレイヤーまではきているよね？
 
 ---
 layout: default
 ---
+
+<div class="mt-8">
 
 ```kotlin{all}{maxHeight: '500px', class:'!children:text-xs mt-8'}
 // ...
@@ -252,39 +285,68 @@ class MainActivity : FlutterActivity() {
     }
 }
 ```
-<p class="text-lg font-bold text-center">ログを埋め込んで、コールドスタート→ディープリンクを起動してみる</p>
+</div>
+<p class="text-2xl font-bold text-center">ログを埋め込んで、コールドスタート→ディープリンクを起動してみる</p>
 
 ---
 layout: default
 ---
 
-```shell{all|11-13}{maxHeight: '500px', class:'!children:text-xs mt-8'}
-adb logcat -s DL:I
+<div class="flex flex-row items-center justify-center mt-16">
+
+```shell{all|10-13}{maxHeight: '500px', class:'!children:text-xs'}
 ❯ adb shell 'am start -W -a android.intent.action.VIEW -d "https://jobhouse.jobhouse-stg.th-svc.net/"'
 Starting: Intent { act=android.intent.action.VIEW dat=https://jobhouse.jobhouse-stg.th-svc.net/... }
 Status: ok
-LaunchState: COLD
+LaunchState: WARM
 Activity: com.techouse.driverApp.stg/com.techouse.driver_app.MainActivity
-TotalTime: 2264
-WaitTime: 2268
+TotalTime: 2153
+WaitTime: 2157
 Complete
 
-08-18 15:34:19.307 25522 25522 I DL      \
-: onCreate dataString=https://jobhouse.jobhouse-stg.th-svc.net/ \
+08-18 16:07:29.577 32421 32421 I DL      : onCreate dataString=https://jobhouse.jobhouse-stg.th-svc.net/ \
 scheme=https host=jobhouse.jobhouse-stg.th-svc.net path=/ query=null
+
+
 ```
 
-<p class="text-lg font-bold text-center">host/schemeの情報はちゃんと来ていそうですね</p>
+</div>
+
+<p class="text-2xl font-bold text-center">host/schemeの情報はちゃんと来ていそうですね</p>
 
 ---
 layout: center
 ---
 
 ## 大丈夫そう
+<p class="text-2xl font-bold text-center" v-click>てことは、それより上のレイヤーでどこかしらで抜け落ちているのかも？</p>
+
 
 ---
 layout: center
 ---
 
-## 次に手をつけやすそうなところでいくと、<br>ライブラリ/パッケージの中身を見てみる
+## ひとまずライブラリ/パッケージの中身を見てみる
+
+性質的にFlutter Engineの問題ではないだろう...と信じてライブラリを疑う
+
+闇雲に探すとキリがないんでね、、、（言い訳）
+
+---
+layout: center
+---
+
+<p class="text-3xl"> ジョブハウスアプリはRoutingに<strong>GoRouter</strong>を利用しており、<br>ディープリンクのハンドリングもある程度そこに任せている</p>
+<p class="text-2xl font-bold text-center" v-click>めちゃくちゃ怪しいですね...</p>
+
+
+---
+layout: center
+---
+# ということで
+---
+layout: center
+---
+
+# Let’ fork!!
 
