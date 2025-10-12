@@ -217,7 +217,7 @@ LaunchState: COLD
 ```
 
 
-<p class="text-2xl font-bold text-center" v-click> `/`のときだけ、hostの情報が消えているだと... </p>
+<p class="text-2xl font-bold text-center" v-click> `/`無しのときだけ、hostの情報が消えているだと... </p>
 
 ---
 layout: center
@@ -336,7 +336,7 @@ layout: center
 layout: center
 ---
 
-<p class="text-3xl"> ジョブハウスアプリはRoutingに<strong>GoRouter</strong>を利用しており、<br>ディープリンクのハンドリングもある程度そこに任せている</p>
+<p class="text-3xl text-black"> ジョブハウスアプリはRoutingに<strong>GoRouter</strong>を利用しており、<br>ディープリンクのハンドリングもある程度そこに任せている</p>
 <p class="text-2xl font-bold text-center" v-click>めちゃくちゃ怪しいですね...</p>
 
 
@@ -344,9 +344,107 @@ layout: center
 layout: center
 ---
 # ということで
+
 ---
 layout: center
 ---
 
-# Let’ fork!!
+<h1>Let’ fork!!</h1>
 
+---
+layout: image
+image: fork_repo.png
+---
+
+
+---
+layout: default
+---
+
+<div class="flex flex-row items-center justify-center mt-16">
+
+```dart{all}{maxHeight: '450px', class:'!children:text-xs mt-8'}
+class GoRouter implements RouterConfig<RouteMatchList> {
+/// Default constructor to configure a GoRouter with a routes builder
+  /// and an error page builder.
+  ///
+  /// The `routes` must not be null and must contain an [GoRouter] to match `/`.
+  factory GoRouter({
+    required List<RouteBase> routes,
+    //...
+  }) {
+    return GoRouter.routingConfig(
+      routingConfig: _ConstantRoutingConfig(
+        RoutingConfig(
+          routes: routes,
+          //...
+        ),
+      ),
+      //...
+    );
+  }
+}
+```
+
+</div>
+
+<p class="text-lg font-bold text-center">コールドスタート時の問題なので、初期化のコードが怪しいと踏む</p>
+
+---
+layout: default
+---
+
+<div class="flex flex-row items-center justify-center mt-16">
+
+```dart{all|11}{maxHeight: '450px', class:'!children:text-xs mt-8'}
+/// Creates a [GoRouter] with a dynamic [RoutingConfig].
+  ///
+  /// See [routing_config.dart](https://github.com/flutter/packages/blob/main/packages/go_router/example/lib/routing_config.dart).
+  GoRouter.routingConfig({
+    //...
+  }) : _routingConfig = routingConfig {
+    //...
+    WidgetsFlutterBinding.ensureInitialized();
+
+    routeInformationProvider = GoRouteInformationProvider(
+      initialLocation: _effectiveInitialLocation(initialLocation), // ←すごい初期化のパスを決めていそうなやつがいる!!
+      initialExtra: initialExtra,
+      refreshListenable: refreshListenable,
+      routerNeglect: routerNeglect,
+    );
+    //...
+  }
+```
+
+</div>
+
+<p class="text-lg font-bold text-center">ふむふむ、、</p>
+
+---
+layout: default
+---
+
+<div class="flex flex-row items-center justify-center mt-16">
+
+```dart{all|18-20}{maxHeight: '450px', class:'!children:text-xs mt-8'}
+xxx
+```
+
+</div>
+
+<p class="text-lg font-bold text-center">明らかに怪しいぞ、、、ここで初期化しているっぽい</p>
+
+
+---
+layout: default
+---
+
+<div class="flex flex-row items-center justify-center mt-16">
+
+```dart{all|18-20}{maxHeight: '450px', class:'!children:text-xs mt-8'}
+xxx
+```
+
+</div>
+
+<p class="text-lg font-bold text-center">直してみて</p>
