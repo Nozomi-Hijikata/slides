@@ -362,7 +362,8 @@ layout: center
 layout: center
 ---
 
-<p class="text-3xl text-black"> ジョブハウスアプリはRoutingに<strong>GoRouter</strong>を利用しており、<br>ディープリンクのハンドリングもある程度そこに任せている</p>
+<p class="text-3xl text-black"> ジョブハウスアプリはRoutingに<strong>GoRouter</strong>を利用</p>
+<p v-click>ディープリンクのハンドリングもある程度そこに任せている</p>
 <p class="text-2xl font-bold text-center" v-click>めちゃくちゃ怪しいですね...</p>
 
 
@@ -414,7 +415,7 @@ class GoRouter implements RouterConfig<RouteMatchList> {
 
 </div>
 
-<p class="text-lg font-bold text-center">コールドスタート時の問題なので、初期化のコードが怪しいと踏む</p>
+<p class="text-lg font-bold text-center" v-click>コールドスタート時の問題なので、初期化のコードが怪しいと踏む</p>
 
 ---
 layout: default
@@ -444,7 +445,7 @@ layout: default
 
 </div>
 
-<p class="text-lg font-bold text-center">ふむふむ、、</p>
+<p class="text-lg font-bold text-center" v-click>ふむふむ、、`_effectiveInitialLocation`で初期化のパスを決めているのか</p>
 
 ---
 layout: default
@@ -452,13 +453,32 @@ layout: default
 
 <div class="flex flex-row items-center justify-center mt-16">
 
-```dart{all|18-20}{maxHeight: '450px', class:'!children:text-xs mt-8'}
-xxx
+```dart{all|6-11}{maxHeight: '450px', class:'!children:text-xs mt-8'}
+String _effectiveInitialLocation(String? initialLocation) {
+  //...
+  Uri platformDefaultUri = Uri.parse(
+    WidgetsBinding.instance.platformDispatcher.defaultRouteName,
+  );
+  if (platformDefaultUri.hasEmptyPath) {
+    platformDefaultUri = Uri(
+      path: '/',
+      queryParameters: platformDefaultUri.queryParameters,
+    );
+  }
+  final String platformDefault = platformDefaultUri.toString();
+  if (initialLocation == null) {
+    return platformDefault;
+  } else if (platformDefault == '/') {
+    return initialLocation;
+  } else {
+    return platformDefault;
+  }
+}
 ```
 
 </div>
 
-<p class="text-lg font-bold text-center">明らかに怪しいぞ、、、ここで初期化しているっぽい</p>
+<p class="text-lg font-bold text-center" v-click>明らかに怪しいぞ、、`Uri`を初期化しているから、ホストの情報が抜け落ちちゃうよね</p>
 
 
 ---
@@ -467,10 +487,125 @@ layout: default
 
 <div class="flex flex-row items-center justify-center mt-16">
 
-```dart{all|18-20}{maxHeight: '450px', class:'!children:text-xs mt-8'}
-xxx
+```diff{all|9}{maxHeight: '450px', class:'!children:text-xs mt-8'}
+@@ -575,10 +575,7 @@ class GoRouter implements RouterConfig<RouteMatchList> {
+     if (platformDefaultUri.hasEmptyPath) {
+       // TODO(chunhtai): Clean up this once `RouteInformation.uri` is available
+       // in packages repo.
+-      platformDefaultUri = Uri(
+-        path: '/',
+-        queryParameters: platformDefaultUri.queryParameters,
+-      );
++      platformDefaultUri = platformDefaultUri.replace(path: '/');
+     }
 ```
 
 </div>
 
-<p class="text-lg font-bold text-center">直してみて</p>
+<p class="text-lg font-bold text-center" v-click>直す</p>
+
+
+---
+layout: default
+---
+
+<div class="flex flex-row items-center justify-center mt-16">
+
+```diff{all|5-8}{maxHeight: '450px', class:'!children:text-xs mt-8'}
+@@ -119,3 +119,7 @@ dev_dependencies:
+flutter:
+  generate: true
+  uses-material-design: true
++
++dependency_overrides:
++  go_router:
++    path: ../forks/go_router-13.2.5
+```
+
+</div>
+
+<p class="text-lg font-bold text-center">ローカルで修正したパッケージを当ててビルドしてみると、、、</p>
+
+
+---
+layout: center
+---
+# 直った！！🎉
+
+
+---
+layout: center
+---
+<p class="text-lg">余談というか推測）iOSの場合URIを渡す前に事前に正規化して、`/`を持たせるようにしているのだろう<br>(それがEngineのレイヤーなのか、Embedderのレイヤーなのかは分からないが)</p>
+
+`/`つきだと`platformDefaultUri.hasEmptyPath`が`false`になる
+
+```dart{all|3-5|6}{maxHeight: '450px', class:'!children:text-xs mt-8'}
+String _effectiveInitialLocation(String? initialLocation) {
+  //...
+  Uri platformDefaultUri = Uri.parse(
+    WidgetsBinding.instance.platformDispatcher.defaultRouteName,
+  );
+  if (platformDefaultUri.hasEmptyPath) {
+    platformDefaultUri = Uri(
+      path: '/',
+      queryParameters: platformDefaultUri.queryParameters,
+    );
+  }
+  //...
+}
+```
+
+---
+layout: center
+---
+
+## ではではPRを作ろう
+
+---
+layout: center
+---
+
+# Contribution Guideをまずはみる
+
+リポジトリごとに若干違うので、ある程度目は通しておいた方がいい
+
+---
+layout: center
+---
+
+<div class='flex justify-center flex-col items-center' >
+  <img src='/public/contribution_guide.png' class='w-1/2'/>
+  <p>環境構築周りが書いてあったり、色々あるのでひとまずここからみるのが良い</p>
+</div>
+
+
+---
+layout: center
+---
+
+<div class='flex justify-center flex-col items-center' >
+  <img src='/public/issue_desc_1.png' class='w-1/2'/>
+  <p>issueのdescriptionを書いて、minimal reproductionも記述する</p>
+</div>
+
+---
+layout: center
+---
+
+<div class='flex justify-center flex-col items-center' >
+  <div class="flex flex-row">
+    <img src='/public/issue_desc_2.png' class='w-1/2'/>
+    <img src='/public/issue_desc_3.png' class='w-1/2'/>
+  </div>
+  <p>minimal reproductionが結構大事できちんと書く</p>
+</div>
+
+---
+layout: center
+---
+
+<div class='flex justify-center' >
+  <img src='/public/setup_tools.png' class='w-1/2'/>
+</div>
+
