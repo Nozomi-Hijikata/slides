@@ -653,3 +653,63 @@ layout: center
   <img src='/public/cla.png' class='w-2/5'/>
   <p>余談）FlutterもGoogleのプロジェクトなので、Contributor Liscence Agreements(CLA)に署名が必要</p>
 </div>
+
+---
+layout: center
+---
+
+# あとは気長に待つだけ
+
+リポジトリの規模にもよるが、大抵結構かかるので2週間くらいは待っておいた方がいい
+
+---
+layout: center
+---
+
+<div class='flex justify-center flex-col items-center' >
+  <img src='/public/approve1.png' class='w-4/5'/>
+  <p class="text-2xl">Approve!</p>
+</div>
+
+---
+layout: center
+---
+
+<div class='flex justify-center flex-col items-center' >
+  <img src='/public/approve2.png' class='w-4/5'/>
+  <p class="text-2xl">Approve!!</p>
+</div>
+
+---
+layout: center
+---
+
+# 待つ...(2週間くらい)
+
+---
+layout: center
+---
+
+<div class='flex justify-center flex-col items-center' >
+  <img src='/public/merge.png' class='w-4/5'/>
+  <p class="text-2xl">Merge!!!</p>
+</div>
+
+
+---
+layout: center
+---
+
+<div class='flex justify-center flex-col items-center' >
+  <img src='/public/release_pr.png' class='w-3/5'/>
+  <p class="text-2xl">Release!</p>
+</div>
+
+---
+layout: center
+---
+
+<div class='flex justify-center flex-col items-center' >
+  <img src='/public/go_router_changelog.png' class='w-3/5'/>
+  <p class="text-2xl">Release!!!🎉</p>
+</div>
