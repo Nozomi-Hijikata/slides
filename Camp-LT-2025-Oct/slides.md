@@ -48,9 +48,8 @@ layout: center
 layout: center
 ---
 
-<div v-click>
-  <h2>QA（Kさん）からバグ報告が！！</h2>
-  <img src='/public/qa_report.png' class='w-1/2'/>
+<div>
+  <h2>QAからバグ報告が！！</h2>
 </div>
 <p v-click>いつもありがとうございます、、、</p>
 
@@ -70,13 +69,11 @@ layout: default
   iOS: Universal Link / Android: App Links
 </h2>
 <p>
-  URLをクリックで対応するアプリのViewに遷移させることができる
+  リンクをクリック→対応するアプリのViewに遷移させることができる
 </p>
 <p>
-  アプリの実装で、遷移するリンクに応じて処理を切り替えたりも可能
+  アプリの実装で、遷移するリンクに応じて<strong>処理を切り替えたりすること</strong>も可能
 </p>
-
-TODO: 図を貼る
 
 ---
 layout: default
@@ -93,7 +90,7 @@ layout: default
       <li>❌ jobhouse.jp -> <strong>全領域</strong>のモード</li> 
     </ul>
   </div>
-  <div class='flex-1 flex justify-center mt-4'>
+  <div class='flex-1 flex justify-center mt-4' v-click>
     <img src='/public/app_search.png' class='w-1/2'/>
   </div>
 </div>
@@ -131,8 +128,8 @@ layout: default
 ---
 
 # 怪しい場所を探索
-### 1.Androidのディープリンク定義ファイル(xml定義)
-### 2.アプリケーションのRouting定義（routes.rbみたいなもの）
+<h3 v-click> 1.Androidのディープリンク定義ファイル(xml定義) </h3>
+<h3 v-click> 2.アプリケーションのRouting定義（routes.rbみたいなもの）</h3>
 
 ---
 layout: center
@@ -144,26 +141,24 @@ layout: center
 ---
 layout: default
 ---
+<div class="mt-8">
 
-```dart{all|18-20}{maxHeight: '450px', class:'!children:text-xs mt-8'}
+```dart{all|14-17}{maxHeight: '450px', class:'!children:text-xs mt-8'}
 // ジョブハウスのアプリケーションコード
-class HorizontalArticleSearchRoute extends GoRouteData
-    with HorizontalNamespaceMixin {
-  static const _name = 'article_search';
-  static const _path = 'article_search_boxes';
+// 1つ1つのクラスがRoutingの定義にあたる
+class HorizontalRootRoute extends GoRouteData with HorizontalNamespaceMixin {
+  static const name = 'horizontal';
+  static const _path = '/';
 
-  static final $parentNavigatorKey = _rootNavigatorKey;
-
-  const HorizontalArticleSearchRoute();
-
+  const HorizontalRootRoute();
   @override
-  Page<void> buildPage(BuildContext context, GoRouterState state) {
-    //...
+  Widget build(BuildContext context, GoRouterState state) {
+    return const ArticlesRootPage();
   }
 
   @override
   FutureOr<String?> redirect(BuildContext context, GoRouterState state) async {
-    // Set the namespace to the shared namespace if it is opened from the deep linking.
+    // ディープリンクから起動した際は、namespaceのモードを同期する
     if (state.uri.host.isNotEmpty) {
       await sync(context);
     }
@@ -172,7 +167,9 @@ class HorizontalArticleSearchRoute extends GoRouteData
 }
 ```
 
-<p class="text-lg font-bold">わかった！！androidの時だけ、検索条件更新のためのsyncが呼ばれていない</p>
+</div>
+
+<p class="text-lg font-bold" v-click>わかった！！androidの時だけ、検索条件更新のためのsyncが呼ばれていない</p>
 
 ---
 layout: center
@@ -192,12 +189,41 @@ if (state.uri.host.isNotEmpty) {
 layout: center
 ---
 
-## 念の為本当にHostが抜け落ちているのかをチェックする
+## 念の為本当にHostが抜け落ちているのかをチェックする🔍
 
 ---
 layout: default
 ---
 ## ディープリンク起動時のURL情報をログ出力
+
+
+```dart{all|15}
+@Riverpod(keepAlive: true, dependencies: [routeObserver, RemoteConfig])
+GoRouter router(Ref ref) {
+  return GoRouter(
+    routes: $appRoutes,
+    navigatorKey: _rootNavigatorKey,
+    debugLogDiagnostics: kDebugMode,
+    observers: [
+      ref.read(routeObserverProvider),
+    ],
+    onException: (context, state, router) async {
+      //...
+    },
+    initialLocation: _initialLocation,
+    redirect: (context, state) async {
+      debugPrint('redirect: ${state.uri.toString()}');
+      //...
+    },
+  );
+```
+
+---
+layout: default
+---
+## ディープリンク起動時のURL情報をログ出力
+
+CLIからEmulatorのディープリンクを直接起動できるのでそれを利用
 
 `/`の場合
 ```shell{all|1|4}{maxHeight: '450px', class:'!children:text-xs mt-8'}
@@ -230,7 +256,7 @@ layout: center
 layout: center
 ---
 
-## どこまでディープリンクの情報(host/scheme...)が<br>来ているのかを調べる
+## ディープリンクの情報(host/scheme...)が<br>どこまで来ているのかを調べる
 
 ---
 layout: center
@@ -238,12 +264,13 @@ layout: center
 <div class='flex flex-row gap-6 mx-8'>
   <div class='flex-1 flex flex-col justify-center text-left'>
     <p class="text-2xl font-bold">
-      (余談) FlutterアプリはOSごとのホストアプリ（Platform Specific※）のなかで、独自のFlutterエンジンを持つ形で動いている <span class="text-sm">※Kotlin/Swiftだと思ってもらえればわかりやすい</span>
+      (余談) FlutterアプリはOSごとのホストアプリ※のなかで、独自のFlutterエンジンを持つ形で動いている
     </p>
+    <span class="text-sm">※Kotlin/Swiftのホストアプリだと思ってもらえればわかりやすい</span>
     <p v-click class="font-bold text-xl">DartのアプリケーションはこのFlutterエンジンの上で動く</p>
   </div>
   <div class='flex-1 flex justify-center mt-4'>
-    <img src='/public/app-anatomy.svg' class='w-1/2'/>
+    <img src='/app-anatomy.svg' class='w-1/2'/>
   </div>
 </div>
 
@@ -260,7 +287,7 @@ layout: default
 
 <div class="mt-8">
 
-```kotlin{all}{maxHeight: '500px', class:'!children:text-xs mt-8'}
+```kotlin{all|6-9,18-21}{maxHeight: '500px', class:'!children:text-xs mt-8'}
 // ...
 class MainActivity : FlutterActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -304,15 +331,14 @@ TotalTime: 2153
 WaitTime: 2157
 Complete
 
-08-18 16:07:29.577 32421 32421 I DL      : onCreate dataString=https://jobhouse.jobhouse-stg.th-svc.net/ \
+08-18 16:07:29.577 32421 32421 I DL      
+: onCreate dataString=https://jobhouse.jobhouse-stg.th-svc.net/ \
 scheme=https host=jobhouse.jobhouse-stg.th-svc.net path=/ query=null
-
-
 ```
 
 </div>
 
-<p class="text-2xl font-bold text-center">host/schemeの情報はちゃんと来ていそうですね</p>
+<p class="text-2xl font-bold text-center" v-click>host/schemeの情報はちゃんと来ていそうですね</p>
 
 ---
 layout: center
