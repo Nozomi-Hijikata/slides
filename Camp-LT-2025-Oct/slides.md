@@ -713,3 +713,44 @@ layout: center
   <img src='/public/go_router_changelog.png' class='w-3/5'/>
   <p class="text-2xl">Release!!!🎉</p>
 </div>
+
+---
+layout: center
+---
+
+# 一連の流れを受けて
+
+---
+layout: center
+---
+
+<div>
+  <p class='text-2xl font-bold' v-click>これを丁寧にやるのが大事</p>
+  <ul class='list-disc inline-block text-lg text-left leading-relaxed ml-8' v-click>
+    <li>原因を調べる</li>
+    <li>最小の再現を作る</li>
+    <li>直す</li>
+    <li>丁寧にコミュニケーションを取る</li>
+    <li>気長に待つ</li>
+  </ul>
+  <p class='text-xl' v-click>ライブラリだろうがなんだろうが直してやるぞという心持ちも大事</p>
+  <p class='text-xl' v-click>それを書いたのも同じ人間ならいけるだろ...!!と強気で！</p>
+  <p class="text-xl" v-click>そして<strong>敬意</strong>を持って！</p>
+</div>
+
+---
+layout: center
+---
+
+<p class="text-xl" v-click>初期化時の重要なところにpatchを当てた</p>
+<p class="text-xl" v-click>GoRouterはルーティングのデファクトスタンダード（公式だからね、weekly50万ダウンロード）</p>
+
+
+<h2 v-click>自分の実装が<br>みんなのFlutterアプリの起動時に読み込まれるとなると<br>興奮しますね🤩</h2>
+
+
+---
+layout: center
+---
+
+# OSSは楽しいよ！！
