@@ -576,7 +576,7 @@ layout: center
 
 <div class='flex justify-center flex-col items-center' >
   <img src='/public/contribution_guide.png' class='w-1/2'/>
-  <p>環境構築周りが書いてあったり、色々あるのでひとまずここからみるのが良い</p>
+  <p>環境構築周りが書いてあったり、色々あるのでひとまずここからみるのが良い(今回はIssueが必須だった)</p>
 </div>
 
 
@@ -586,7 +586,7 @@ layout: center
 
 <div class='flex justify-center flex-col items-center' >
   <img src='/public/issue_desc_1.png' class='w-1/2'/>
-  <p>issueのdescriptionを書いて、minimal reproductionも記述する</p>
+  <p>Issueのdescriptionを書いて、Minimal Reproducible Example (MRE)も記述する</p>
 </div>
 
 ---
@@ -598,14 +598,58 @@ layout: center
     <img src='/public/issue_desc_2.png' class='w-1/2'/>
     <img src='/public/issue_desc_3.png' class='w-1/2'/>
   </div>
-  <p>minimal reproductionが結構大事できちんと書く</p>
+  <p>MREが結構大事できちんと書く</p>
 </div>
 
 ---
 layout: center
 ---
 
-<div class='flex justify-center' >
-  <img src='/public/setup_tools.png' class='w-1/2'/>
+<div class='flex justify-center flex-col items-center' >
+  <img src='/public/setup_tools.png' class='w-2/5'/>
+  <p>開発環境を構築して、CI通るようにする</p>
+  あるあるだが、Dart CLIでテスト周りのコマンドが自動化されている
 </div>
 
+---
+layout: center
+---
+
+<div class='flex justify-center flex-col items-center' >
+  <img src='/public/ci.png' class='w-1/3'/>
+  <p>CIもたくさん</p>
+</div>
+
+---
+layout: center
+---
+
+<div class='flex justify-center flex-col items-center' >
+  <img src='/public/changelog.png' class='w-4/5'/>
+  <p>CHANGELOGも自動化されている</p>
+</div>
+
+---
+layout: center
+---
+
+諸々作業をして、
+# PRとIssueをあげた！
+
+---
+layout: center
+---
+
+<div class='flex justify-center flex-col items-center' >
+  <img src='/public/pr.png' class='w-3/5'/>
+</div>
+
+
+---
+layout: center
+---
+
+<div class='flex justify-center flex-col items-center' >
+  <img src='/public/cla.png' class='w-2/5'/>
+  <p>余談）FlutterもGoogleのプロジェクトなので、Contributor Liscence Agreements(CLA)に署名が必要</p>
+</div>
