@@ -31,6 +31,17 @@ layout: center
 
 # OSSはいいぞという話をします
 
+---
+layout: center
+---
+
+## OSSとは？といった話はしません
+
+---
+layout: center
+---
+
+## どうOSSと向き合うのか<br>どうやってOSSに関わるのかの話ができればと思います
 
 ---
 layout: center
@@ -651,7 +662,7 @@ layout: center
 
 <div class='flex justify-center flex-col items-center' >
   <img src='/public/cla.png' class='w-2/5'/>
-  <p>余談）FlutterもGoogleのプロジェクトなので、Contributor Liscence Agreements(CLA)に署名が必要</p>
+  <p class="text-lg">余談）FlutterもGoogleのプロジェクトなので、Contributor Liscence Agreements(CLA)に署名が必要</p>
 </div>
 
 ---
