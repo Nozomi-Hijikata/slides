@@ -275,10 +275,10 @@ layout: center
 <div class='flex flex-row gap-6 mx-8'>
   <div class='flex-1 flex flex-col justify-center text-left'>
     <p class="text-2xl font-bold">
-      (余談) FlutterアプリはOSごとのホストアプリ※のなかで、独自のFlutterエンジンを持つ形で動いている
+      (余談) FlutterアプリはOSごとのホストアプリ<span class="text-sm">※</span>のなかで、独自のFlutterエンジンを持つ形で動いている
     </p>
-    <span class="text-sm">※Kotlin/Swiftのホストアプリだと思ってもらえればわかりやすい</span>
-    <p v-click class="font-bold text-xl">DartのアプリケーションはこのFlutterエンジンの上で動く</p>
+    <span class="text-sm">※Kotlin/Swiftのホストアプリだと思ってもらえればわかりやすい。(`libflutter.so`を動的ロードしている)</span>
+    <p v-click class="font-bold text-xl">Dartのアプリケーション<span class="text-sm">※</span>は<br>このFlutterエンジンの上で動く<br><span class="text-sm font-normal">※AOTコンパイルされて`libapp.so`にまとめられる</span></p>
   </div>
   <div class='flex-1 flex justify-center mt-4'>
     <img src='/app-anatomy.svg' class='w-1/2'/>
@@ -333,18 +333,17 @@ layout: default
 <div class="flex flex-row items-center justify-center mt-16">
 
 ```shell{all|10-13}{maxHeight: '500px', class:'!children:text-xs'}
-❯ adb shell 'am start -W -a android.intent.action.VIEW -d "https://jobhouse.jobhouse-stg.th-svc.net/"'
+❯ adb shell 'am start -W -a android.intent.action.VIEW -d "https://jobhouse.jobhouse-stg.th-svc.net"' 
 Starting: Intent { act=android.intent.action.VIEW dat=https://jobhouse.jobhouse-stg.th-svc.net/... }
 Status: ok
-LaunchState: WARM
+LaunchState: COLD
 Activity: com.techouse.driverApp.stg/com.techouse.driver_app.MainActivity
-TotalTime: 2153
-WaitTime: 2157
+TotalTime: 2563
+WaitTime: 2565
 Complete
 
-08-18 16:07:29.577 32421 32421 I DL      
-: onCreate dataString=https://jobhouse.jobhouse-stg.th-svc.net/ \
-scheme=https host=jobhouse.jobhouse-stg.th-svc.net path=/ query=null
+08-18 16:06:50.979 32165 32165 I DL      
+: onCreate dataString=https://jobhouse.jobhouse-stg.th-svc.net scheme=https host=jobhouse.jobhouse-stg.th-svc.net path= query=null
 ```
 
 </div>
