@@ -23,7 +23,7 @@ mdc: true
 layout: center
 ---
 
-# 今日はね
+# 今日は
 
 ---
 layout: center
@@ -35,7 +35,7 @@ layout: center
 layout: center
 ---
 
-## OSSとは？といった話はしません
+# OSSとは？といった話はしません
 
 ---
 layout: center
@@ -48,7 +48,7 @@ layout: default
 ---
 # 前提:
 
-### ジョブハウス - モバイルアプリ
+### ジョブハウスモバイルアプリ
 <ul class="text-2xl">
   <li>Flutter/Dartで実装</li>
   <li>iOS/Androidにクロスプラットフォームで展開</li> 
@@ -83,7 +83,7 @@ layout: center
 <div>
   <h2>QAからバグ報告が！！</h2>
 </div>
-<p v-click>いつもありがとうございます、、、</p>
+<p v-click class="text-2xl">いつもありがとうございます、、、</p>
 
 
 ---
@@ -756,7 +756,7 @@ layout: center
 ---
 
 <div>
-  <p class='text-2xl font-bold' v-click>これを丁寧にやるのが大事</p>
+  <p class='text-2xl font-bold' v-click>丁寧にやるのが大事</p>
   <ul class='list-disc inline-block text-lg text-left leading-relaxed ml-8' v-click>
     <li>原因を調べる</li>
     <li>最小の再現を作る</li>
