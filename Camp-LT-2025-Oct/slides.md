@@ -44,6 +44,27 @@ layout: center
 ## どうOSSと向き合うのか<br>どうやってOSSに関わるのかの話ができればと思います
 
 ---
+layout: default
+---
+# 前提:
+
+### ジョブハウス - モバイルアプリ
+<ul class="text-2xl">
+  <li>Flutter/Dartで実装</li>
+  <li>iOS/Androidにクロスプラットフォームで展開</li> 
+</ul>
+
+<div class="flex gap-4">
+  <div class="w-1/2 aspect-[16/9]">
+    <img src="/public/flutter.png" class="w-full h-full object-contain" />
+  </div>
+  <div class="w-1/4 aspect-[1/1]">
+    <img src="/public/dart.png" class="w-full h-full object-contain" />
+  </div>
+</div>
+
+
+---
 layout: center
 ---
 
