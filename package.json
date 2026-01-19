@@ -3,9 +3,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "pnpm --filter",
-    "build": "pnpm --filter",
-    "export": "pnpm --filter"
+    "init:slide": "bash scripts/init-slide.sh"
   },
   "dependencies": {
     "@slidev/cli": "^51.3.0",

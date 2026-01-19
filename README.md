@@ -40,20 +40,8 @@ pnpm --filter @slides/camp-lt-2025-oct export
 
 ## 新しいスライドを追加する
 
-1. ルートに新しいディレクトリを作成
-2. `package.json` を作成：
-   ```json
-   {
-     "name": "@slides/your-slide-name",
-     "type": "module",
-     "private": true,
-     "scripts": {
-       "dev": "slidev --open",
-       "build": "slidev build",
-       "export": "slidev export"
-     }
-   }
-   ```
-3. `slides.md` を作成
-4. `pnpm-workspace.yaml` にディレクトリ名を追加
-5. `pnpm install` を実行
+```bash
+pnpm init:slide my-new-slide
+pnpm install
+pnpm --filter @slides/my-new-slide dev
+```

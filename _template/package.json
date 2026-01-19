@@ -1,0 +1,10 @@
+{
+  "name": "@slides/SLIDE_NAME",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "slidev --open",
+    "build": "slidev build",
+    "export": "slidev export"
+  }
+}
