@@ -1,20 +1,10 @@
 {
-  "name": "slides",
+  "name": "@slides/camp-lt-2025-oct",
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "slidev build",
     "dev": "slidev --open",
+    "build": "slidev build",
     "export": "slidev export"
-  },
-  "dependencies": {
-    "@slidev/cli": "^51.3.0",
-    "@slidev/theme-default": "latest",
-    "@slidev/theme-seriph": "latest",
-    "slidev-theme-geist": "^0.8.1",
-    "vue": "^3.5.13"
-  },
-  "devDependencies": {
-    "playwright-chromium": "^1.50.1"
   }
 }
