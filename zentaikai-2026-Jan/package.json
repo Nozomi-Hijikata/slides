@@ -1,0 +1,10 @@
+{
+  "name": "@slides/zentaikai-2026-jan",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "slidev --open",
+    "build": "slidev build",
+    "export": "slidev export"
+  }
+}
