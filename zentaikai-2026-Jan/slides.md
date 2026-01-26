@@ -675,4 +675,14 @@ layout: center
 ---
 ## TODO: speedup result
 
+---
+layout: center
+---
+## TODO: 無事マージ
+
+
+---
+layout: center
+---
+## TODO: 5本マージされました
 
