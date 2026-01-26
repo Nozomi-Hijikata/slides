@@ -1,6 +1,6 @@
 ---
 theme: geist
-colorSchema: dark
+colorSchema: light
 
 layout: center
 
@@ -219,6 +219,175 @@ layout: center
 <div class='flex justify-center' >
   <img src='/public/zjit-enhanced.png' class='w-full'/>
 </div>
+
+
+---
+layout: default
+---
+
+# HIR/LIRとは
+VMのバイトコード（おさらい）
+
+```rb
+# add.rb
+def add(left, right)
+  left + right
+end
+
+p add(1, 2)
+p add(3, 4)
+```
+```
+== disasm: #<ISeq:add@add.rb:2 (2,0)-(4,3)>
+local table (size: 2, argc: 2 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1, kwrest: -1])
+[ 2] left@0<Arg>[ 1] right@1<Arg>
+0000 getlocal_WC_0                          left@0                    (   3)[LiCa]
+0002 getlocal_WC_0                          right@1
+0004 opt_plus                               <calldata!mid:+, argc:1, ARGS_SIMPLE>[CcCr]
+0006 leave
+```
+
+---
+layout: default
+---
+
+# HIR: 最適化を行うための抽象化層
+### VMのバイトコード
+```
+== disasm: #<ISeq:add@add.rb:2 (2,0)-(4,3)>
+local table (size: 2, argc: 2 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1, kwrest: -1])
+[ 2] left@0<Arg>[ 1] right@1<Arg>
+0000 getlocal_WC_0                          left@0                    (   3)[LiCa]
+0002 getlocal_WC_0                          right@1
+0004 opt_plus                               <calldata!mid:+, argc:1, ARGS_SIMPLE>[CcCr]
+0006 leave
+```
+
+### HIR(初期状態)
+<v-click>
+
+```
+HIR:
+fn add:
+bb0(v0:BasicObject, v1:BasicObject):
+  v4:BasicObject = SendWithoutBlock v0, :+, v1
+  Return v4
+```
+
+</v-click>
+
+---
+layout: default
+---
+
+# HIR: 最適化の様子
+### HIR(初期状態)
+```
+HIR:
+fn add:
+bb0(v0:BasicObject, v1:BasicObject):
+  v4:BasicObject = SendWithoutBlock v0, :+, v1
+  Return v4
+```
+
+### HIR(最適化後)
+<v-click>
+
+```
+HIR:
+fn add:
+bb0(v0:BasicObject, v1:BasicObject):
+  PatchPoint BOPRedefined(INTEGER_REDEFINED_OP_FLAG, BOP_PLUS)
+  v7:Fixnum = GuardType v0, Fixnum
+  v8:Fixnum = GuardType v1, Fixnum
+  v9:Fixnum = FixnumAdd v7, v8
+  Return v9
+```
+
+</v-click>
+
+---
+layout: default
+---
+
+# LIR: プラットフォームごとの機械語への変換を担当
+```{*}{maxHeight: '400px', class:'!children:text-xs'}
+fn add:
+Assembler
+    000 Label() -> None
+    001 FrameSetup() -> None
+    002 LiveReg(A64Reg { num_bits: 64, reg_no: 0 }) -> Out64(0)
+    003 LiveReg(A64Reg { num_bits: 64, reg_no: 1 }) -> Out64(1)
+# The first GuardType
+    004 Test(Out64(0), 1_u64) -> None
+    005 Jz() target=SideExit(FrameState { iseq: 0x1049ca480, insn_idx: 4, pc: 0x6000002b2520, stack: [InsnId(0), InsnId(1)], locals: [InsnId(0), InsnId(1)] }) -> None
+# The second GuardType
+    006 Test(Out64(1), 1_u64) -> None
+    007 Jz() target=SideExit(FrameState { iseq: 0x1049ca480, insn_idx: 4, pc: 0x6000002b2520, stack: [InsnId(0), InsnId(1)], locals: [InsnId(0), InsnId(1)] }) -> None
+# The FixnumAdd; side-exit if it overflows Fixnum
+    008 Sub(Out64(0), 1_i64) -> Out64(2)
+    009 Add(Out64(2), Out64(1)) -> Out64(3)
+    010 Jo() target=SideExit(FrameState { iseq: 0x1049ca480, insn_idx: 4, pc: 0x6000002b2520, stack: [InsnId(0), InsnId(1)], locals: [InsnId(0), InsnId(1)] }) -> None
+    011 Add(A64Reg { num_bits: 64, reg_no: 19 }, 38_u64) -> Out64(4)
+    012 Mov(A64Reg { num_bits: 64, reg_no: 19 }, Out64(4)) -> None
+    013 Mov(Mem64[Reg(20) + 16], A64Reg { num_bits: 64, reg_no: 19 }) -> None
+    014 FrameTeardown() -> None
+    015 CRet(Out64(3)) -> None
+```
+
+---
+layout: default
+---
+
+# ASM(機械語):
+
+```
+...
+# Insn: v7 GuardType v0, Fixnum
+0x6376b7ad400f: test dil, 1
+0x6376b7ad4013: je 0x6376b7ad4000
+# Insn: v8 GuardType v1, Fixnum
+0x6376b7ad4019: test sil, 1
+0x6376b7ad401d: je 0x6376b7ad4005
+# Insn: v9 FixnumAdd v7, v8
+0x6376b7ad4023: sub rdi, 1
+0x6376b7ad4027: add rdi, rsi
+0x6376b7ad402a: jo 0x6376b7ad400a
+```
+
+---
+layout: center
+---
+
+# なんとなく伝わった...?
+
+---
+layout: center
+---
+
+# ようやく本題
+
+
+---
+layout: center
+---
+
+# 今回話すのは`Array#[]=`の高速化
+
+---
+layout: center
+---
+
+```rb{*}{maxHeight: '500px', class:'!children:text-lg'}
+a = [0, 1, 2, 3, 4, 5]
+a[0] = "a"
+p a  #=> ["a", 1, 2, 3, 4, 5]
+a[10] = "x"
+p a  #=> ["a", 1, 2, 3, 4, 5, nil, nil, nil, nil, "x"]
+
+a = [0, 1, 2, 3, 4, 5]
+a[-100] = 1           #=> IndexError
+```
 
 
 
