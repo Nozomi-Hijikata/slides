@@ -394,7 +394,7 @@ a[-100] = 1           #=> IndexError
 layout: default
 ---
 
-##  JITからのメソッド呼び出しを早くする方法はざっくり3つ
+##  JITからのメソッド呼び出しをする方法はざっくり3つ
 
 <ul>
   <v-click>
@@ -434,13 +434,14 @@ layout: default
   <v-click>
     <li class="mb-6"><strong class="text-xl">genericな命令を使う</strong>
       <ul>
-        <li>元々この形</li>
+        <li>前提あんまりやりたくないケース</li>
       </ul>
     </li>
   </v-click>
   <v-click>
     <li class="mb-6"><strong class="text-xl">C定義関数を直接呼ぶ最適化</strong>
       <ul>
+        <li>元々この形</li>
         <li>`rb_ary_store`というC定義の関数があるのでそれに割り当てができる</li>
       </ul>
     </li>
@@ -490,7 +491,7 @@ layout: center
 ---
 
 
-```rust{*|6-16}{maxHeight: '500px', class:'!children:text-xs'}
+```rust{*|6-16|18}{maxHeight: '500px', class:'!children:text-xs'}
 fn inline_array_aset(fun: &mut hir::Function, block: hir::BlockId...) -> Option<hir::InsnId> {
     if let &[index, val] = args {
         if fun.likely_a(recv, types::ArrayExact, state)
@@ -522,7 +523,7 @@ fn inline_array_aset(fun: &mut hir::Function, block: hir::BlockId...) -> Option<
 layout: center
 ---
 
-### さらにさらに<br>ガードを入れるとSideexitが発生してVMに処理が戻ってしまうので、<br>パフォーマンス的には望ましくない
+### ガードを入れるとSideexitが発生して、VMに処理が戻ってしまうので、<br>パフォーマンス的には望ましくない
 
 <v-click>
   <h4>事前にある程度、そのパスに入らないことを知っておく必要がある</h4>
