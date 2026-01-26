@@ -720,6 +720,30 @@ layout: center
 
 
 ---
+layout: default
+---
+# 感想
+
+<v-click>
+<h3> 1. CRuby Contributionデビュー！(素直に嬉しいね)</h3>
+<h4>JITを通じてたくさんのことを学ぶことができる</h4>
+</v-click>
+
+<v-click>
+<h3> 2. ShopifyのJITチームやRubyメンテナーの方々と交流できるのもOSSの魅力</h3>
+</v-click>
+
+<v-click>
+  <div class='flex justify-center' >
+    <img src='/public/zjit-approval.png' class='w-2/4'/>
+  </div>
+</v-click>
+
+
+---
 layout: center
 ---
-# ガンガンいこうぜ💪
+
+# おわり
+
+
