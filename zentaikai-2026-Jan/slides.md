@@ -185,7 +185,7 @@ local table (size: 2, argc: 2 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1,
 layout: center
 ---
 
-# これだけでは終わらない
+# VMだけでは終わらない
 
 ---
 layout: default
