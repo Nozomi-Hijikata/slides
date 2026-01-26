@@ -522,8 +522,88 @@ fn inline_array_aset(fun: &mut hir::Function, block: hir::BlockId...) -> Option<
 layout: center
 ---
 
-## さらにさらにガードを入れるとSideexitが発生してVMに処理が戻ってしまうので、パフォーマンス的には望ましくない
+### さらにさらに<br>ガードを入れるとSideexitが発生してVMに処理が戻ってしまうので、<br>パフォーマンス的には望ましくない
 
 <v-click>
   <h4>事前にある程度、そのパスに入らないことを知っておく必要がある</h4>
 </v-click>
+
+
+---
+layout: center
+---
+
+```
+## Results:
+
+### liquid renderer
+              array_aset_fixnum_inline_count:          35
+array_aset_fixnum_inline_in_bounds_pos_count:           0
+array_aset_fixnum_inline_in_bounds_neg_count:           0
+      array_aset_fixnum_inline_oob_pos_count:          35
+      array_aset_fixnum_inline_oob_neg_count:           0
+### rails bench
+              array_aset_fixnum_inline_count:     131,681
+array_aset_fixnum_inline_in_bounds_pos_count:     131,675
+array_aset_fixnum_inline_in_bounds_neg_count:           6
+      array_aset_fixnum_inline_oob_pos_count:           0
+      array_aset_fixnum_inline_oob_neg_count:           0
+### optcarrot
+              array_aset_fixnum_inline_count:     1,018,328
+array_aset_fixnum_inline_in_bounds_pos_count:     1,016,305
+array_aset_fixnum_inline_in_bounds_neg_count:             0
+      array_aset_fixnum_inline_oob_pos_count:         2,023
+      array_aset_fixnum_inline_oob_neg_count:             0
+### looptimes
+              array_aset_fixnum_inline_count:   400,099,942
+array_aset_fixnum_inline_in_bounds_pos_count:   400,099,942
+array_aset_fixnum_inline_in_bounds_neg_count:             0
+      array_aset_fixnum_inline_oob_pos_count:             0
+      array_aset_fixnum_inline_oob_neg_count:             0
+```
+
+
+---
+layout: center
+---
+## 大丈夫そう👍
+
+---
+layout: center
+---
+## あとはLIR側への変換処理を作ればよし
+
+---
+layout: center
+---
+
+```rust{*|6-16}{maxHeight: '500px', class:'!children:text-xs'}
+fn gen_array_aset(
+    asm: &mut Assembler,
+    array: Opnd,
+    index: Opnd,
+    val: Opnd,
+) {
+    let unboxed_idx = asm.load(index);
+    let array = asm.load(array);
+    let array_ptr = gen_array_ptr(asm, array);
+    let elem_offset = asm.lshift(unboxed_idx, Opnd::UImm(SIZEOF_VALUE.trailing_zeros() as u64));
+    let elem_ptr = asm.add(array_ptr, elem_offset);
+    asm.store(Opnd::mem(VALUE_BITS, elem_ptr, 0), val);
+}
+```
+
+
+---
+layout: center
+---
+## ベンチマークを取るぞ
+
+
+---
+layout: center
+---
+```
+
+```
+
