@@ -417,7 +417,8 @@ layout: default
     <li class="mb-6"><strong class="text-xl">機械語で直接メモリを操作する</strong>
       <ul>
         <li>C関数呼び出しのセットアップを省く</li>
-        <li>ただ壊れないようにするための前提/ガードが必要</li>
+        <li>壊れないようにするための前提/ガードが必要</li>
+        <li>※常に使える・使いたいわけではない</li>
       </ul>
     </li>
   </v-click>
