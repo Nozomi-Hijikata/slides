@@ -577,7 +577,7 @@ layout: center
 layout: center
 ---
 
-```rust{*|6-16}{maxHeight: '500px', class:'!children:text-xs'}
+```rust{*}{maxHeight: '500px', class:'!children:text-sm'}
 fn gen_array_aset(
     asm: &mut Assembler,
     array: Opnd,
@@ -603,7 +603,76 @@ layout: center
 ---
 layout: center
 ---
-```
+### loops-timesでのベンチ
 
+<div class="flex-row flex">
+<div>
+Before
+```{*|3}
+***ZJIT: Printing ZJIT statistics on exit***
+Top-20 not inlined C methods (100.0% of total 400,106,363):
+              Array#[]=: 400,099,942 (100.0%)
+       Numeric#nonzero?:       1,686 ( 0.0%)
+               String#+:         737 ( 0.0%)
+             File.file?:         737 ( 0.0%)
+             Array#any?:         593 ( 0.0%)
+          Regexp#match?:         565 ( 0.0%)
+              String#-@:         286 ( 0.0%)
+           String#split:         230 ( 0.0%)
+          String#chomp!:         230 ( 0.0%)
+       File.expand_path:         218 ( 0.0%)
+  String#delete_prefix!:         196 ( 0.0%)
+              String#[]:         196 ( 0.0%)
+     String#start_with?:         196 ( 0.0%)
+       String#end_with?:         196 ( 0.0%)
+            String#to_i:         119 ( 0.0%)
+           String#gsub!:          90 ( 0.0%)
+           String#strip:          90 ( 0.0%)
+            File.exist?:          20 ( 0.0%)
+             Array#join:          13 ( 0.0%)
+          Array#compact:          13 ( 0.0%)
 ```
+</div>
+
+<div>
+After
+```
+***ZJIT: Printing ZJIT statistics on exit***
+Top-20 not inlined C methods (100.0% of total 5,833):
+       Numeric#nonzero?: 1,591 (27.3%)
+             File.file?:   686 (11.8%)
+               String#+:   686 (11.8%)
+             Array#any?:   550 ( 9.4%)
+          Regexp#match?:   449 ( 7.7%)
+              String#-@:   262 ( 4.5%)
+           String#split:   213 ( 3.7%)
+          String#chomp!:   213 ( 3.7%)
+       File.expand_path:   200 ( 3.4%)
+  String#delete_prefix!:   182 ( 3.1%)
+       String#end_with?:   182 ( 3.1%)
+     String#start_with?:   182 ( 3.1%)
+              String#[]:   182 ( 3.1%)
+           String#gsub!:    80 ( 1.4%)
+           String#strip:    80 ( 1.4%)
+            String#to_i:    58 ( 1.0%)
+            File.exist?:    17 ( 0.3%)
+          Array#compact:     9 ( 0.2%)
+             Array#join:     9 ( 0.2%)
+       Module#const_set:     1 ( 0.0%)
+```
+</div>
+</div>
+
+
+---
+layout: center
+---
+## 4億回の`Array#[]=`呼び出しを削減できた！！
+
+
+---
+layout: center
+---
+## TODO: speedup result
+
 
