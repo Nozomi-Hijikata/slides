@@ -734,8 +734,9 @@ layout: default
 </v-click>
 
 <v-click>
-  <div class='flex justify-center' >
-    <img src='/public/zjit-approval.png' class='w-2/4'/>
+  <div class='flex justify-center flex-row gap-4' >
+    <img src='/public/zjit-approval.png' class='w-2/4 h-auto object-contain'/>
+    <img src='/public/zjit-bluesky.jpg' class='w-1/4 h-auto object-contain'/>
   </div>
 </v-click>
 
@@ -745,5 +746,4 @@ layout: center
 ---
 
 # おわり
-
 
