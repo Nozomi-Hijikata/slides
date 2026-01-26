@@ -673,16 +673,52 @@ layout: center
 ---
 layout: center
 ---
-## TODO: speedup result
+## 手元のベンチマークで5%改善
+- before patch: Average of last 10, non-warmup iters: <strong>3557</strong>ms
+- after patch: Average of last 10, non-warmup iters: <strong>3362</strong>ms
 
 ---
 layout: center
 ---
-## TODO: 無事マージ
+
+<h2 class="text-center">無事マージ🎉</h2>
+
+<div class='flex justify-center' >
+  <img src='/public/zjit-arrayaset-merged.png' class='w-full'/>
+</div>
+
+---
+layout: center
+---
+
+<h2 class="text-center">ruby-bench側でも明確に上がっている!!🚀</h2>
+<p class="text-center">※取り込まれたのが2026/1/8</p>
+
+<div class='flex justify-center' >
+  <img src='/public/zjit-bench.png' class='w-3/4'/>
+</div>
+
+---
+layout: center
+---
+# そんなこんなで
+
+---
+layout: center
+---
+
+<h2 class="text-center">1月からの累計で5本マージされました</h2>
+
+<div class='flex justify-center items-center flex-col gap-2'>
+  <img src='/public/zjit-arrayaset-merged.png' class='w-1/2'/>
+  <img src='/public/zjit-merged2.png' class='w-1/2'/>
+  <img src='/public/zjit-merged3.png' class='w-1/2'/>
+  <img src='/public/zjit-merged4.png' class='w-1/2'/>
+  <img src='/public/zjit-merged5.png' class='w-1/2'/>
+</div>
 
 
 ---
 layout: center
 ---
-## TODO: 5本マージされました
-
+# ガンガンいこうぜ💪
