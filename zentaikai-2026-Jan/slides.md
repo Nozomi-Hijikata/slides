@@ -390,4 +390,140 @@ a[-100] = 1           #=> IndexError
 ```
 
 
+---
+layout: default
+---
 
+##  JITからのメソッド呼び出しを早くする方法はざっくり3つ
+
+<ul>
+  <v-click>
+    <li class="mb-6"><strong class="text-xl">genericな命令を使う</strong>
+      <ul>
+        <li>VMの処理をそのまま利用する(Fallback)</li>
+        <li>`Send`, `SendWithoutBlock` HIR</li>
+      </ul>
+    </li>
+  </v-click>
+  <v-click>
+    <li class="mb-6"><strong class="text-xl">C定義関数を直接呼ぶ最適化</strong>
+      <ul>
+        <li>コンパイル時に対象となる関数を確定・実行時のメソッド探索を省く</li>
+        <li>`CCall`, `CCallVariadic` HIR</li>
+      </ul>
+    </li>
+  </v-click>
+  <v-click>
+    <li class="mb-6"><strong class="text-xl">機械語で直接メモリを操作する</strong>
+      <ul>
+        <li>C関数呼び出しのセットアップを省く</li>
+        <li>ただ壊れないようにするための前提/ガードが必要</li>
+      </ul>
+    </li>
+  </v-click>
+</ul>
+
+
+---
+layout: default
+---
+
+## `Array#[]=`で考えてみると
+
+<ul>
+  <v-click>
+    <li class="mb-6"><strong class="text-xl">genericな命令を使う</strong>
+      <ul>
+        <li>元々この形</li>
+      </ul>
+    </li>
+  </v-click>
+  <v-click>
+    <li class="mb-6"><strong class="text-xl">C定義関数を直接呼ぶ最適化</strong>
+      <ul>
+        <li>`rb_ary_store`というC定義の関数があるのでそれに割り当てができる</li>
+      </ul>
+    </li>
+  </v-click>
+  <v-click>
+    <li class="mb-6"><strong class="text-xl">機械語で直接メモリを操作する</strong>
+      <ul>
+        <li><strong>条件を満たせばこいつが一番早い</strong></li>
+      </ul>
+    </li>
+  </v-click>
+</ul>
+
+---
+layout: center
+---
+
+# 「条件を満たせば」がちょっと厄介
+
+
+---
+layout: center
+---
+
+### `Array#[]=`は配列のサイズ以上のアクセスに対して、<br>追加でメモリ確保をしたり、例外を上げたりする挙動が発生する
+
+
+---
+layout: center
+---
+
+## そうなると機械語の処理だけではカバーできなくなる
+
+<v-click>
+  <h4>例外やメモリ確保はVMのフレームの存在やGCの処理を前提としているため</h4>
+</v-click>
+
+
+---
+layout: center
+---
+
+## なのでこれらのケースでは、VMにSideexitする
+
+---
+layout: center
+---
+
+
+```rust{*|6-16}{maxHeight: '500px', class:'!children:text-xs'}
+fn inline_array_aset(fun: &mut hir::Function, block: hir::BlockId...) -> Option<hir::InsnId> {
+    if let &[index, val] = args {
+        if fun.likely_a(recv, types::ArrayExact, state)
+            && fun.likely_a(index, types::Fixnum, state)
+        {
+            let recv = fun.coerce_to(block, recv, types::ArrayExact, state);
+            let index = fun.coerce_to(block, index, types::Fixnum, state);
+            let recv = fun.push_insn(block, hir::Insn::GuardNotFrozen { recv, state });
+            let recv = fun.push_insn(block, hir::Insn::GuardNotShared { recv, state });
+
+            // Bounds check: unbox Fixnum index and guard 0 <= idx < length.
+            let index = fun.push_insn(block, hir::Insn::UnboxFixnum { val: index });
+            let length = fun.push_insn(block, hir::Insn::ArrayLength { array: recv });
+            let index = fun.push_insn(block, hir::Insn::GuardLess { left: index, right: length, state });
+            let zero = fun.push_insn(block, hir::Insn::Const { val: hir::Const::CInt64(0) });
+            let index = fun.push_insn(block, hir::Insn::GuardGreaterEq { left: index, right: zero, state });
+
+            let _ = fun.push_insn(block, hir::Insn::ArrayAset { array: recv, index, val });
+            fun.push_insn(block, hir::Insn::WriteBarrier { recv, val });
+            return Some(val);
+        }
+    }
+    None
+}
+```
+
+
+---
+layout: center
+---
+
+## さらにさらにガードを入れるとSideexitが発生してVMに処理が戻ってしまうので、パフォーマンス的には望ましくない
+
+<v-click>
+  <h4>事前にある程度、そのパスに入らないことを知っておく必要がある</h4>
+</v-click>
