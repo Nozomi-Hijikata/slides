@@ -709,15 +709,28 @@ layout: center
 layout: center
 ---
 
-<h2 class="text-center">1月からの累計で6本マージされました</h2>
+<h2 class="text-center">1月からの累計で</h2>
 
 <div class='flex justify-center items-center flex-col gap-2'>
+<v-click>
   <img src='/public/zjit-arrayaset-merged.png' class='w-1/2'/>
+</v-click>
+<v-click>
   <img src='/public/zjit-merged2.png' class='w-1/2'/>
+</v-click>
+<v-click>
   <img src='/public/zjit-merged3.png' class='w-1/2'/>
+</v-click>
+<v-click>
   <img src='/public/zjit-merged4.png' class='w-1/2'/>
+</v-click>
+<v-click>
   <img src='/public/zjit-merged5.png' class='w-1/2'/>
+</v-click>
+<v-click>
   <img src='/public/zjit-merged6.png' class='w-1/2'/>
+</v-click>
+  
 </div>
 
 
