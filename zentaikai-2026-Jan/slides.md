@@ -491,6 +491,42 @@ layout: center
 layout: center
 ---
 
+### HIRの例
+
+```rb
+def test(arr)
+  arr[1] = 10
+end
+```
+<v-click>
+
+```{*|6-8|10-13|14}{class:'!children:text-normal'}
+bb2(v8:BasicObject, v9:BasicObject):
+  v16:Fixnum[1] = Const Value(1)
+  v18:Fixnum[10] = Const Value(10)
+  PatchPoint NoSingletonClass(Array@0x1000)
+  PatchPoint MethodRedefined(Array@0x1000, []=@0x1008, cme:0x1010)
+  v31:ArrayExact = GuardType v9, ArrayExact
+  v32:ArrayExact = GuardNotFrozen v31
+  v33:ArrayExact = GuardNotShared v32
+  v34:CInt64[1] = UnboxFixnum v16
+  v35:CInt64 = ArrayLength v33
+  v36:CInt64[1] = GuardLess v34, v35
+  v37:CInt64[0] = Const CInt64(0)
+  v38:CInt64[1] = GuardGreaterEq v36, v37
+  ArrayAset v33, v38, v18
+  WriteBarrier v33, v18
+  IncrCounter inline_cfunc_optimized_send_count
+  CheckInterrupts
+  Return v18
+```
+
+</v-click>
+
+---
+layout: center
+---
+
 
 ```rust{*|6-16|18}{maxHeight: '500px', class:'!children:text-xs'}
 fn inline_array_aset(fun: &mut hir::Function, block: hir::BlockId...) -> Option<hir::InsnId> {
@@ -593,6 +629,76 @@ fn gen_array_aset(
     let elem_ptr = asm.add(array_ptr, elem_offset);
     asm.store(Opnd::mem(VALUE_BITS, elem_ptr, 0), val);
 }
+```
+
+---
+layout: center
+---
+
+### LIR
+
+```{*}{class:'!children:text-xs'}
+# Insn: v31 GuardType v9, ArrayExact
+# guard exact class for non-immediate types
+Test v4, 7
+Jnz Exit(GuardType(ArrayExact))
+Cmp v4, Value(0)
+Je Exit(GuardType(ArrayExact))
+v5 = Load [v4 + 8]
+Cmp v5, Value(0x102f23200)
+Jne Exit(GuardType(ArrayExact))
+# Insn: v32 GuardNotFrozen v31
+v6 = Load v4
+v7 = Load [v6]
+Test v7, 0x800
+Jnz Exit(GuardNotFrozen)
+# Insn: v33 GuardNotShared v32
+v8 = Load v6
+v9 = Load [v8]
+Test v9, 0x1000
+Jnz Exit(GuardNotShared)
+# Insn: v34 UnboxFixnum v16
+v10 = RShift Value(3), 1
+# Insn: v35 ArrayLength v33
+v11 = Load v8
+v12 = And [v11], 0x3f8000
+v13 = RShift v12, 0xf
+Test [v11], 0x2000
+v14 = CSelNZ v13, [v11 + 0x10]
+# Insn: v36 GuardLess v34, v35
+Cmp v10, v14
+Jge Exit(GuardLess)
+# Insn: v37 Const CInt64(0)
+# Insn: v38 GuardGreaterEq v36, v37
+Cmp v10, Imm(0)
+Jl Exit(GuardGreaterEq)
+# Insn: v39 ArrayAset v33, v38, v18
+v15 = Load v10
+v16 = Load v8
+Test [v16], 0x2000
+v17 = Lea [v16 + 0x10]
+v18 = CSelNZ v17, [v16 + 0x20]
+v19 = LShift v15, 3
+v20 = Add v18, v19
+Store [v20], Value(0x15)
+# Insn: v40 WriteBarrier v33, v18
+# Insn: v41 IncrCounter inline_cfunc_optimized_send_count
+# Insn: v25 PatchPoint NoTracePoint
+PatchPoint Exit(PatchPoint(NoTracePoint))
+# Insn: v26 CheckInterrupts
+# RUBY_VM_CHECK_INTS(ec)
+VReg32(v21) = Load Mem32[x20 + 0x20]
+Test VReg32(v21), VReg32(v21)
+Jnz Exit(Interrupt)
+# Insn: v27 Return v18
+# pop stack frame
+v22 = Add x19, 0x38
+Mov x19, v22
+Mov [x20 + 0x10], x19
+LoadInto x0, Value(0x15)
+FrameTeardown
+CRet x0
+PadPatchPoint
 ```
 
 
