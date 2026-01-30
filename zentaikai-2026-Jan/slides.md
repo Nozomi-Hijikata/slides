@@ -416,7 +416,7 @@ layout: default
   <v-click>
     <li class="mb-6"><strong class="text-xl">機械語で直接メモリを操作する</strong>
       <ul>
-        <li>C関数呼び出しのセットアップを省く/分岐命令(`call`,`bl/blr`)を削除できる</li>
+        <li>C関数呼び出しのセットアップを省く/命令流の切り替えにコストがかかる分岐命令(`call`,`bl/blr`)を削除できる</li>
         <li>壊れないようにするための前提/ガードが必要</li>
         <li>※常に使える・使いたいわけではない</li>
       </ul>
