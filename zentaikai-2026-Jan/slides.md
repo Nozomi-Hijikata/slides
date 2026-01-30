@@ -416,7 +416,7 @@ layout: default
   <v-click>
     <li class="mb-6"><strong class="text-xl">機械語で直接メモリを操作する</strong>
       <ul>
-        <li>C関数呼び出しのセットアップを省く</li>
+        <li>C関数呼び出しのセットアップを省く/分岐命令(`call`,`bl/blr`)を削除できる</li>
         <li>壊れないようにするための前提/ガードが必要</li>
         <li>※常に使える・使いたいわけではない</li>
       </ul>
@@ -637,7 +637,7 @@ layout: center
 
 ### LIR
 
-```{*}{class:'!children:text-xs'}
+```{*}{maxHeight: '400px', class:'!children:text-xs'}
 # Insn: v31 GuardType v9, ArrayExact
 # guard exact class for non-immediate types
 Test v4, 7
@@ -701,6 +701,84 @@ CRet x0
 PadPatchPoint
 ```
 
+---
+layout: center
+---
+
+### Assembly
+
+```{*}{maxHeight: '400px', class:'!children:text-xs'}
+# Insn: v31 GuardType v9, ArrayExact
+# guard exact class for non-immediate types
+0x124eb412c: tst x1, #7
+0x124eb4130: b.ne #0x124eb4200
+0x124eb4134: cmp x1, #0
+0x124eb4138: b.eq #0x124eb4200
+0x124eb413c: ldur x0, [x1, #8]
+0x124eb4140: ldr x2, #0x124eb4148
+0x124eb4144: b #0x124eb4150
+0x124eb4148: .byte 0x00, 0x09, 0x8d, 0x05
+0x124eb414c: .byte 0x01, 0x00, 0x00, 0x00
+0x124eb4150: cmp x0, x2
+0x124eb4154: b.ne #0x124eb4200
+# Insn: v32 GuardNotFrozen v31
+0x124eb4158: mov x0, x1
+0x124eb415c: ldur x2, [x0]
+0x124eb4160: tst x2, #0x800
+0x124eb4164: b.ne #0x124eb4200
+# Insn: v33 GuardNotShared v32
+0x124eb4168: mov x0, x0
+0x124eb416c: ldur x2, [x0]
+0x124eb4170: tst x2, #0x1000
+0x124eb4174: b.ne #0x124eb4200
+# Insn: v34 UnboxFixnum v16
+0x124eb4178: mov x2, #3
+0x124eb417c: asr x2, x2, #1
+# Insn: v35 ArrayLength v33
+0x124eb4180: mov x3, x0
+0x124eb4184: ldur x4, [x3]
+0x124eb4188: and x4, x4, #0x3f8000
+0x124eb418c: asr x4, x4, #0xf
+0x124eb4190: ldur x5, [x3]
+0x124eb4194: tst x5, #0x2000
+0x124eb4198: ldur x3, [x3, #0x10]
+0x124eb419c: csel x4, x4, x3, ne
+# Insn: v36 GuardLess v34, v35
+0x124eb41a0: cmp x2, x4
+0x124eb41a4: b.ge #0x124eb4200
+# Insn: v37 Const CInt64(0)
+# Insn: v38 GuardGreaterEq v36, v37
+0x124eb41a8: cmp x2, #0
+0x124eb41ac: b.lt #0x124eb4200
+# Insn: v39 ArrayAset v33, v38, v18
+0x124eb41b0: mov x2, x2
+0x124eb41b4: mov x0, x0
+0x124eb41b8: ldur x3, [x0]
+0x124eb41bc: tst x3, #0x2000
+0x124eb41c0: add x3, x0, #0x10
+0x124eb41c4: ldur x0, [x0, #0x20]
+0x124eb41c8: csel x3, x3, x0, ne
+0x124eb41cc: lsl x2, x2, #3
+0x124eb41d0: adds x3, x3, x2
+0x124eb41d4: mov x16, #0x15
+0x124eb41d8: stur x16, [x3]
+# Insn: v40 WriteBarrier v33, v18
+# Insn: v41 IncrCounter inline_cfunc_optimized_send_count
+# Insn: v25 PatchPoint NoTracePoint
+# Insn: v26 CheckInterrupts
+# RUBY_VM_CHECK_INTS(ec)
+0x124eb41dc: ldur w0, [x20, #0x20]
+0x124eb41e0: tst w0, w0
+0x124eb41e4: b.ne #0x124eb4248
+# Insn: v27 Return v18
+# pop stack frame
+0x124eb41e8: adds x19, x19, #0x38
+0x124eb41ec: stur x19, [x20, #0x10]
+0x124eb41f0: mov x0, #0x15
+0x124eb41f4: mov sp, x29
+0x124eb41f8: ldp x29, x30, [sp], #0x10
+0x124eb41fc: ret
+```
 
 ---
 layout: center
