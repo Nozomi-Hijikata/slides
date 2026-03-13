@@ -67,7 +67,7 @@ layout: center
 layout: center
 ---
 
-`JIT_EXEC`なるマクロがあり、それをVM命令dispatch時に呼び出すことでEntry
+### `JIT_EXEC`なるマクロがあり、それをVM命令dispatch時に呼び出すことでEntry
 
 ```c
 // Run the JIT from the interpreter
@@ -95,7 +95,7 @@ layout: center
 layout: center
 ---
 
-`JIT_EXEC`はsend命令の中で呼び出しされるんでしたね
+### `JIT_EXEC`はsend命令の中で呼び出しされるんでしたね
 
 ```c{all|21}{maxHeight: '400px', class:'!children:text-xs'}
 //vm.inc
@@ -145,7 +145,7 @@ INSN_ENTRY(send)
 layout: center
 ---
 
-`zjit_compile`を続けてみていく
+### `zjit_compile`でISEQをコンパイル
 
 ```c{*|5-10}
 // Run the JIT from the interpreter
@@ -167,7 +167,7 @@ layout: center
 layout: default
 ---
 
-### やっていることはシンプル
+### Counterを使ってCompileの有無を判定
 
 <ol>
   <li>1. 呼び出されるたびにカウンターをincrement</li>
@@ -203,7 +203,7 @@ Profilingは後述
 layout: center
 ---
 
-`rb_zjit_iseq_gen_entrypoint`がRust側のCompile処理を呼び出す
+### `rb_zjit_iseq_gen_entrypoint`がRust側のCompile処理を呼び出す
 
 ```c{*|9|15}{maxHeight: '400px', class:'!children:text-xs'}
 void
@@ -230,7 +230,7 @@ rb_zjit_compile_iseq(const rb_iseq_t *iseq, bool jit_exception)
 layout: center
 ---
 
-compileされた`jit_entry`(`func`)を使って`zjit_entry`に処理を移譲していますね
+### compileされた`jit_entry`(`func`)を使って`zjit_entry`に処理を移譲
 
 ```c{*|7-10}
 // Run the JIT from the interpreter
@@ -252,7 +252,7 @@ compileされた`jit_entry`(`func`)を使って`zjit_entry`に処理を移譲し
 layout: center
 ---
 
-`rb_zjit_entry`もRust側で初期化される
+### `rb_zjit_entry`もRust側で初期化される
 
 ```rust{*|15,19}
 /// Initialize ZJIT at boot. This is called even if ZJIT is disabled.
@@ -288,7 +288,7 @@ fn zjit_enable() {
 layout: center
 ---
 
-`zjit_entry`の中身自体は`gen_entry_trampoline`が生成する生ポインタ
+### `zjit_entry`の中身自体は`gen_entry_trampoline`が生成する生ポインタ
 
 ```rust{*|15,19}
 impl ZJITState {
@@ -344,7 +344,9 @@ VM -> JITのエントリーポイントを集約することで、EC/SPレジス
 layout: center
 ---
 
-# ちょっとずつ見えてきましたね！
+## ちょっとずつ見えてきましたね！
+
+JITコンパイルされたISEQが呼び出される流れをみたので、<br>ZJIT側のCompile処理もみてみようと思います
 
 
 
@@ -354,7 +356,13 @@ layout: center
 layout: center
 ---
 
-# では各段階での最適化をみていく
+## とここまでで超ざっくりですが流れを追った形です
+
+---
+layout: center
+---
+
+# xxx (最適化)
 
 ---
 layout: default
