@@ -169,14 +169,14 @@ layout: default
 
 ### やっていることはシンプル
 
-1. 呼び出されるたびにカウンターをincrement
-2. profile用に
-3. 一定の閾値に達したら`rb_zjit_compile_iseq`を呼び出してjit compileする
+<ol>
+  <li>1. 呼び出されるたびにカウンターをincrement</li>
+  <li>2. 一定の閾値に達したらprofile用に命令列をZJIT profile用に差し替え</li>
+  <li>3. 一定の閾値に達したら<code>rb_zjit_compile_iseq</code>を呼び出してjit compileする</li>
+</ol>
 
-```c{*|5-10}{maxHeight: '350px', class:'!children:text-xs'}
-static inline rb_jit_func_t
-zjit_compile(rb_execution_context_t *ec)
-{
+```c{*|5|6-10|11-14}{maxHeight: '320px', class:'!children:text-xs'}
+static inline rb_jit_func_t zjit_compile(rb_execution_context_t *ec) {
     const rb_iseq_t *iseq = ec->cfp->iseq;
     struct rb_iseq_constant_body *body = ISEQ_BODY(iseq);
     if (body->jit_entry == NULL) {
@@ -194,6 +194,76 @@ zjit_compile(rb_execution_context_t *ec)
     return body->jit_entry;
 }
 ```
+
+<Footnotes center>
+Profilingは後述
+</Footnotes>
+
+---
+layout: center
+---
+
+`rb_zjit_iseq_gen_entrypoint`がRust側のCompile処理を呼び出す
+
+```c{*|9|15}{maxHeight: '400px', class:'!children:text-xs'}
+void
+rb_zjit_compile_iseq(const rb_iseq_t *iseq, bool jit_exception)
+{
+    RB_VM_LOCKING() {
+        rb_vm_barrier();
+
+        // Compile a block version starting at the current instruction
+        uint8_t *rb_zjit_iseq_gen_entry_point(const rb_iseq_t *iseq, bool jit_exception); // defined in Rust
+        uintptr_t code_ptr = (uintptr_t)rb_zjit_iseq_gen_entry_point(iseq, jit_exception);
+
+        if (jit_exception) {
+            iseq->body->jit_exception = (rb_jit_func_t)code_ptr;
+        }
+        else {
+            iseq->body->jit_entry = (rb_jit_func_t)code_ptr;
+        }
+    }
+}
+```
+
+---
+layout: center
+---
+
+compileされた`jit_entry`(`func`)を使って`zjit_entry`に処理を移譲していますね
+
+```c{*|7-10}
+// Run the JIT from the interpreter
+#define JIT_EXEC(ec, val) do { \
+    /* don't run tailcalls since that breaks FINISH */ \
+    if (UNDEF_P(val) && GET_CFP() != ec->cfp) { \
+        rb_zjit_func_t zjit_entry; \
+        if ((zjit_entry = (rb_zjit_func_t)rb_zjit_entry)) { \
+            rb_jit_func_t func = zjit_compile(ec); \
+            if (func) { \
+                val = zjit_entry(ec, ec->cfp, func); \
+            } \
+        } \
+    } \
+} while (0)
+```
+
+---
+layout: center
+---
+
+`rb_zjit_entry`をみていくと
+
+```c{*|7-10}
+
+```
+
+
+---
+layout: center
+---
+
+# ちょっとずつ見えてきましたね！
 
 
 
