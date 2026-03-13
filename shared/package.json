@@ -1,5 +1,8 @@
 {
   "name": "@slides/shared",
   "type": "module",
-  "private": true
+  "private": true,
+  "exports": {
+    "./components": "./components/index.ts"
+  }
 }

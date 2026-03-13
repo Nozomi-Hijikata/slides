@@ -55,8 +55,155 @@ layout: center
 layout: center
 ---
 
-# 具体を見ていく前に概念から
+## 細かい話をする前に、ひとまず一巡した方がいいと思うので、
 
+---
+layout: center
+---
+
+## Entrypointから順に実装ベースでみていく
+
+---
+layout: center
+---
+
+`JIT_EXEC`なるマクロがあり、それをVM命令dispatch時に呼び出すことでEntry
+
+```c
+// Run the JIT from the interpreter
+#define JIT_EXEC(ec, val) do { \
+    /* don't run tailcalls since that breaks FINISH */ \
+    if (UNDEF_P(val) && GET_CFP() != ec->cfp) { \
+        rb_zjit_func_t zjit_entry; \
+        if ((zjit_entry = (rb_zjit_func_t)rb_zjit_entry)) { \
+            rb_jit_func_t func = zjit_compile(ec); \
+            if (func) { \
+                val = zjit_entry(ec, ec->cfp, func); \
+            } \
+        } \
+    } \
+} while (0)
+
+```
+
+
+<Footnotes>
+  細かく言えばtop frame用に`jit_exec`もあるが省略
+</Footnotes>
+
+---
+layout: center
+---
+
+`JIT_EXEC`はsend命令の中で呼び出しされるんでしたね
+
+```c{all|21}{maxHeight: '400px', class:'!children:text-xs'}
+//vm.inc
+/* insn send(cd, blockiseq)(...)(val) */
+INSN_ENTRY(send)
+{
+    /* ###  Declare that we have just entered into an instruction. ### */
+    START_OF_ORIGINAL_INSN(send);
+    /* ###  Declare and assign variables. ### */
+    CALL_DATA cd = (CALL_DATA)GET_OPERAND(1);
+    ISEQ blockiseq = (ISEQ)GET_OPERAND(2);
+    VALUE val;
+    /* ### Instruction preambles. ### */
+    ADD_PC(INSN_ATTR(width));
+    POPN(INSN_ATTR(popn));
+    //...
+    /* ### Here we do the instruction body. ### */
+#   define NAME_OF_CURRENT_INSN send
+#   line 849 "../ruby/insns.def"
+{
+    VALUE bh = vm_caller_setup_arg_block(ec, GET_CFP(), cd->ci, blockiseq, false);
+    val = vm_sendish(ec, GET_CFP(), cd, bh, mexp_search_method);
+    JIT_EXEC(ec, val);
+
+    if (UNDEF_P(val)) {
+        RESTORE_REGS();
+        NEXT_INSN();
+    }
+}
+#   line 2393 "vm.inc"
+#   undef NAME_OF_CURRENT_INSN
+    /* ### Instruction trailers. ### */
+    //...
+    PUSH(val);
+#   undef INSN_ATTR
+    /* ### Leave the instruction. ### */
+    END_INSN(send);
+}
+```
+
+
+<Footnotes center>
+2025 予習Bootcampより再掲
+</Footnotes>
+
+---
+layout: center
+---
+
+`zjit_compile`を続けてみていく
+
+```c{*|5-10}
+// Run the JIT from the interpreter
+#define JIT_EXEC(ec, val) do { \
+    /* don't run tailcalls since that breaks FINISH */ \
+    if (UNDEF_P(val) && GET_CFP() != ec->cfp) { \
+        rb_zjit_func_t zjit_entry; \
+        if ((zjit_entry = (rb_zjit_func_t)rb_zjit_entry)) { \
+            rb_jit_func_t func = zjit_compile(ec); \
+            if (func) { \
+                val = zjit_entry(ec, ec->cfp, func); \
+            } \
+        } \
+    } \
+} while (0)
+
+```
+---
+layout: default
+---
+
+### やっていることはシンプル
+
+1. 呼び出されるたびにカウンターをincrement
+2. profile用に
+3. 一定の閾値に達したら`rb_zjit_compile_iseq`を呼び出してjit compileする
+
+```c{*|5-10}{maxHeight: '350px', class:'!children:text-xs'}
+static inline rb_jit_func_t
+zjit_compile(rb_execution_context_t *ec)
+{
+    const rb_iseq_t *iseq = ec->cfp->iseq;
+    struct rb_iseq_constant_body *body = ISEQ_BODY(iseq);
+    if (body->jit_entry == NULL) {
+        body->jit_entry_calls++;
+        // At profile-threshold, rewrite some of the YARV instructions
+        // to zjit_* instructions to profile these instructions.
+        if (body->jit_entry_calls == rb_zjit_profile_threshold) {
+            rb_zjit_profile_enable(iseq);
+        }
+        // At call-threshold, compile the ISEQ with ZJIT.
+        if (body->jit_entry_calls == rb_zjit_call_threshold) {
+            rb_zjit_compile_iseq(iseq, false);
+        }
+    }
+    return body->jit_entry;
+}
+```
+
+
+
+<!-- TODO: JIT ENTRY POINT 速習 -->
+
+---
+layout: center
+---
+
+# では各段階での最適化をみていく
 
 ---
 layout: default
@@ -98,7 +245,7 @@ layout: default
 </ul>
 
 <Footnotes>
-  [1] コンパイラの構成と最適化 第2版, 中田育男, 2009<br>
+  ref: コンパイラの構成と最適化 第2版, 中田育男, 2009<br>
 </Footnotes>
 
 
