@@ -97,5 +97,9 @@ layout: default
   </v-click>
 </ul>
 
+<Footnotes>
+  [1] コンパイラの構成と最適化 第2版, 中田育男, 2009<br>
+</Footnotes>
+
 
 

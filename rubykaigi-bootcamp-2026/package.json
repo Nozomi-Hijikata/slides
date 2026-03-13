@@ -6,5 +6,8 @@
     "dev": "slidev --open",
     "build": "slidev build",
     "export": "slidev export"
+  },
+  "dependencies": {
+    "@slides/shared": "workspace:*"
   }
 }
