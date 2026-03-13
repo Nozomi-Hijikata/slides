@@ -252,12 +252,57 @@ compileされた`jit_entry`(`func`)を使って`zjit_entry`に処理を移譲し
 layout: center
 ---
 
-`rb_zjit_entry`をみていくと
+`rb_zjit_entry`もRust側で初期化される
 
-```c{*|7-10}
+```rust{*|15,19}
+/// Initialize ZJIT at boot. This is called even if ZJIT is disabled.
+#[unsafe(no_mangle)]
+pub extern "C" fn rb_zjit_init(zjit_enabled: bool) {
+    // If --zjit, enable ZJIT immediately
+    if zjit_enabled {
+        zjit_enable();
+    }
+}
+
+/// Enable ZJIT compilation.
+fn zjit_enable() {
+    // ...
+    let result = std::panic::catch_unwind(|| {
+        // Initialize ZJIT states
+        let zjit_entry = ZJITState::init();
+        //...
+        // ZJIT enabled and initialized successfully
+        assert!(unsafe{ rb_zjit_entry == null() });
+        unsafe { rb_zjit_entry = zjit_entry; }
+    });
+    //...
+}
 
 ```
 
+<Footnotes center>
+`rb_zjit_init`そのものはRuby起動時に呼び出しされる
+</Footnotes>
+
+---
+layout: center
+---
+
+`zjit_entry`の中身自体は`gen_entry_trampoline`が生成する生ポインタ
+
+```rust{*|15,19}
+impl ZJITState {
+    /// Initialize the ZJIT globals. Return the address of the JIT entry trampoline.
+    pub fn init() -> *const u8 {
+        // たくさん初期化...
+        let entry_trampoline = gen_entry_trampoline(&mut cb).unwrap().raw_ptr(&cb);        
+        
+        //たくさん初期化...
+
+        entry_trampoline
+    }
+}
+```
 
 ---
 layout: center
