@@ -64,10 +64,10 @@ layout: default
 
 ## 最適化の考え方
 
-<ul>
+<ul class="text-sm">
   <v-click>
-    <li class="mb-6"><strong class="text-xl">命令の実行回数を減らす</strong>
-      <ul class="text-sm">
+    <li class="mb-3"><strong class="text-lg">命令の実行回数を減らす</strong>
+      <ul class="text-xs">
         <li>一度実行した結果を再利用する</li>
         <li>コンパイル時に実行できるもののは実行する</li>
         <li>冗長な命令を削除する</li>
@@ -78,8 +78,8 @@ layout: default
     </li>
   </v-click>
   <v-click>
-    <li class="mb-6"><strong class="text-xl">より速い命令を使う</strong>
-      <ul>
+    <li class="mb-3"><strong class="text-lg">より速い命令を使う</strong>
+      <ul class="text-xs">
         <li>レジスタアクセスを利用する</li>
         <li>計算機で使える高性能な命令を利用する</li>
         <li>メモリアクセスの局所性を高めてキャッシュにあたりやすくする</li>
@@ -88,8 +88,8 @@ layout: default
     </li>
   </v-click>
   <v-click>
-    <li class="mb-6"><strong class="text-xl">並列度を上げる</strong>
-      <ul>
+    <li class="mb-3"><strong class="text-lg">並列度を上げる</strong>
+      <ul class="text-xs">
         <li>命令レベルで並列化する（スーパースカラ etc..）</li>
         <li>プロセッサレベルで並列化する (並列計算機（分散メモリ・共有メモリ）)</li>
       </ul>
