@@ -57,6 +57,8 @@ layout: center
 
 ## 細かい話をする前に、ひとまず一巡した方がいいと思うので、
 
+※ 正直あの図だけではわかった気がしないと思うので
+
 ---
 layout: center
 ---
@@ -311,18 +313,18 @@ layout: center
 ### `zjit_entry`経由でJITコンパイルされた関数を呼び出す
 
 <ol>
-  <li>1. Cから呼び出すためにCのABIに従ってsetup</li>
+  <li>1. <code>zjit_entry</code>をCから呼び出すためにCのABIに従ってsetup</li>
   <li>2. 渡されたJITコンパイルされた関数を呼び出す</li>
 </ol>
 
 
-```rust{*|6,14|7-10}{maxHeight: '350px', class:'!children:text-xs'}
+```rust{*|6,13|7-10}{maxHeight: '350px', class:'!children:text-xs'}
 /// Compile a shared JIT entry trampoline
 pub fn gen_entry_trampoline(cb: &mut CodeBlock) -> Result<CodePtr, CompileError> {
     // Set up registers for CFP, EC, SP, and basic block arguments
     let mut asm = Assembler::new();
     asm.new_block_without_id();
-    gen_entry_prologue(&mut asm);
+    gen_entry_prologue(&mut asm); // EC/SPなどをZJIT側のレジスタにコピーするなどのセットアップ
     // Jump to the first block using a call instruction. This trampoline is used
     // as rb_zjit_func_t in jit_exec(), which takes (EC, CFP, rb_jit_func_t).
     // So C_ARG_OPNDS[2] is rb_jit_func_t, which is (EC, CFP) -> VALUE.
@@ -350,7 +352,8 @@ JITコンパイルされたISEQが呼び出される流れをみたので、<br>
 
 
 
-<!-- TODO: JIT ENTRY POINT 速習 -->
+<!-- TODO: ZJIT側のCompile処理を見せる iseq_to_hir, optimize, to_lir, codegen程度でいいので-->
+<!-- TODO: mark executables調べて盛り込む-->
 
 ---
 layout: center
