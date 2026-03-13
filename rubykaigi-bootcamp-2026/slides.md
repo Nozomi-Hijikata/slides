@@ -137,7 +137,7 @@ INSN_ENTRY(send)
 ```
 
 
-<Footnotes center>
+<Footnotes>
 2025 予習Bootcampより再掲
 </Footnotes>
 
@@ -195,7 +195,7 @@ static inline rb_jit_func_t zjit_compile(rb_execution_context_t *ec) {
 }
 ```
 
-<Footnotes center>
+<Footnotes>
 Profilingは後述
 </Footnotes>
 
@@ -280,7 +280,7 @@ fn zjit_enable() {
 
 ```
 
-<Footnotes center>
+<Footnotes>
 `rb_zjit_init`そのものはRuby起動時に呼び出しされる
 </Footnotes>
 
@@ -303,6 +303,42 @@ impl ZJITState {
     }
 }
 ```
+
+---
+layout: center
+---
+
+### `zjit_entry`経由でJITコンパイルされた関数を呼び出す
+
+<ol>
+  <li>1. Cから呼び出すためにCのABIに従ってsetup</li>
+  <li>2. 渡されたJITコンパイルされた関数を呼び出す</li>
+</ol>
+
+
+```rust{*|6,14|7-10}{maxHeight: '350px', class:'!children:text-xs'}
+/// Compile a shared JIT entry trampoline
+pub fn gen_entry_trampoline(cb: &mut CodeBlock) -> Result<CodePtr, CompileError> {
+    // Set up registers for CFP, EC, SP, and basic block arguments
+    let mut asm = Assembler::new();
+    asm.new_block_without_id();
+    gen_entry_prologue(&mut asm);
+    // Jump to the first block using a call instruction. This trampoline is used
+    // as rb_zjit_func_t in jit_exec(), which takes (EC, CFP, rb_jit_func_t).
+    // So C_ARG_OPNDS[2] is rb_jit_func_t, which is (EC, CFP) -> VALUE.
+    asm.ccall_reg(C_ARG_OPNDS[2], VALUE_BITS);
+    // Restore registers for CFP, EC, and SP after use
+    asm.frame_teardown(lir::JIT_PRESERVED_REGS);
+    asm.cret(C_RET_OPND);
+    let (code_ptr, gc_offsets) = asm.compile(cb)?;
+    // ...
+    Ok(code_ptr)
+}
+```
+
+<Footnotes>
+VM -> JITのエントリーポイントを集約することで、EC/SPレジスタ退避などの無駄なコード生成を抑えている
+</Footnotes>
 
 ---
 layout: center
