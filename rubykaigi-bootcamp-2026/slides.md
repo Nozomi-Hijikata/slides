@@ -414,7 +414,7 @@ layout: center
 
 <ul>
   <li>1. Interpreter/JIT Entry用のBasic Block, 分岐命令に対応したBasic Blockをそれぞれ作る</li>
-  <li>2. 作成しておいたBasic Blockに順にYARV INSNをコンパイルしたHIRを流し込んでいく</li>
+  <li>2. 作成しておいたBasic Blockに順にYARV INSNをコンパイルしたHIRをBasic Blockに流し込んでいく</li>
 </ul>
 
 ```rust{*}{maxHeight: '350px', class:'!children:text-xs'}
@@ -482,6 +482,69 @@ end
 ZJITではbasic block argumentsを採用しており、ブロック間の値の受け渡しを引数で表現する cf. Phi function<br>
 ※上の図は説明のための概念図であり実態とは一致しない(ZJITではBBを分岐の片側しか作らない様にしている)
 </Footnotes>
+
+---
+layout: center
+---
+
+### `function.optimize`でHIRレイヤーでの種々の最適化を走らせる（後述）
+
+
+```rust{*|13}{maxHeight: '350px', class:'!children:text-xs'}
+/// Convert ISEQ into High-level IR
+fn compile_iseq(iseq: IseqPtr) -> Result<Function, CompileError> {
+    //  ...
+    let hir = crate::stats::with_time_stat(Counter::compile_hir_build_time_ns, || iseq_to_hir(iseq));
+    let mut function = match hir {
+        Ok(function) => function,
+        Err(err) => {
+            debug!("ZJIT: iseq_to_hir: {err:?}: {}", iseq_get_location(iseq, 0));
+            return Err(CompileError::ParseError(err));
+        }
+    };
+    if !get_option!(disable_hir_opt) {
+        function.optimize();
+    }
+    function.dump_hir();
+    Ok(function)
+}
+```
+
+---
+layout: default
+---
+
+### `gen_function`でcompileを進める
+
+<ul>
+  <li>1. HIR to LIR</li>
+  <li>2. LIR to Assembly</li>
+</ul>
+
+
+```rust{*|5-8|9-10}{maxHeight: '350px', class:'!children:text-xs'}
+/// Compile a function
+fn gen_function(cb: &mut CodeBlock, iseq: IseqPtr, version: IseqVersionRef, function: &Function) -> Result<(IseqCodePtrs, Vec<CodePtr>, Vec<IseqCallRef>), CompileError> {
+    // ...
+
+    // Compile each basic block
+    for (rpo_idx, &block_id) in reverse_post_order.iter().enumerate() {
+        // ... 略
+    }
+    // Generate code if everything can be compiled
+    let result = asm.compile(cb);
+    // ...
+    result.map(|(start_ptr, gc_offsets)| {
+        // Make sure jit_entry_ptrs can be used as a parallel vector to jit_entry_insns()
+        jit.jit_entries.sort_by_key(|jit_entry| jit_entry.borrow().jit_entry_idx);
+
+        let jit_entry_ptrs = jit.jit_entries.iter().map(|jit_entry|
+            jit_entry.borrow().start_addr.get().expect("start_addr should have been set by pos_marker in gen_entry_point")
+        ).collect();
+        (IseqCodePtrs { start_ptr, jit_entry_ptrs }, gc_offsets, jit.iseq_calls)
+    })
+}
+```
 
 <!-- TODO: ZJIT側のCompile処理を見せる iseq_to_hir, optimize, to_lir, codegen程度でいいので-->
 <!-- TODO: mark executables調べて盛り込む-->
