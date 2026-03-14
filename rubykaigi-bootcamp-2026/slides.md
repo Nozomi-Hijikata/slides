@@ -292,7 +292,7 @@ layout: center
 
 ### `zjit_entry`の中身自体は`gen_entry_trampoline`が生成する生ポインタ
 
-```rust{*|15,19}
+```rust{*|5}
 impl ZJITState {
     /// Initialize the ZJIT globals. Return the address of the JIT entry trampoline.
     pub fn init() -> *const u8 {
@@ -348,7 +348,7 @@ layout: center
 
 ## ちょっとずつ見えてきましたね！
 
-JITコンパイルされたISEQが呼び出される流れをみたので、<br>ZJIT側のCompile処理もみてみようと思います
+もうちょい踏み込んで見てみましょう
 
 ---
 layout: center
