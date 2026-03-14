@@ -205,7 +205,7 @@ Profilingは後述
 layout: center
 ---
 
-### `rb_zjit_iseq_gen_entrypoint`がRust側のCompile処理を呼び出す
+### `rb_zjit_iseq_gen_entry_point`がRust側のCompile処理を呼び出す
 
 ```c{*|9|15}{maxHeight: '400px', class:'!children:text-xs'}
 void
@@ -350,7 +350,90 @@ layout: center
 
 JITコンパイルされたISEQが呼び出される流れをみたので、<br>ZJIT側のCompile処理もみてみようと思います
 
+---
+layout: center
+---
 
+### `rb_zjit_iseq_gen_entry_point`がRust側のAPIになっておりコンパイル処理が走る
+
+
+```rust{*|10}{maxHeight: '350px', class:'!children:text-xs'}
+/// CRuby API to compile a given ISEQ.
+/// If jit_exception is true, compile JIT code for handling exceptions.
+/// See jit_compile_exception() for details.
+#[unsafe(no_mangle)]
+pub extern "C" fn rb_zjit_iseq_gen_entry_point(iseq: IseqPtr, jit_exception: bool) -> *const u8 {
+    // Take a lock to avoid writing to ISEQ in parallel with Ractors.
+    // with_vm_lock() does nothing if the program doesn't use Ractors.
+    with_vm_lock(src_loc!(), || {
+        let cb = ZJITState::get_code_block();
+        let mut code_ptr = with_time_stat(compile_time_ns, || gen_iseq_entry_point(cb, iseq, jit_exception));
+        // ...
+        // Always mark the code region executable if asm.compile() has been used.
+        // We need to do this even if code_ptr is None because gen_iseq() may have already used asm.compile().
+        cb.mark_all_executable();
+
+        code_ptr.map_or(std::ptr::null(), |ptr| ptr.raw_ptr(cb))
+    })
+}
+
+```
+
+---
+layout: center
+---
+
+### 順に辿っていくと`compile_iseq` -> `iseq_to_hir`でHIRをコンパイル
+
+
+```rust{*|4}{maxHeight: '350px', class:'!children:text-xs'}
+/// Convert ISEQ into High-level IR
+fn compile_iseq(iseq: IseqPtr) -> Result<Function, CompileError> {
+    //  ...
+    let hir = crate::stats::with_time_stat(Counter::compile_hir_build_time_ns, || iseq_to_hir(iseq));
+    let mut function = match hir {
+        Ok(function) => function,
+        Err(err) => {
+            debug!("ZJIT: iseq_to_hir: {err:?}: {}", iseq_get_location(iseq, 0));
+            return Err(CompileError::ParseError(err));
+        }
+    };
+    if !get_option!(disable_hir_opt) {
+        function.optimize();
+    }
+    function.dump_hir();
+    Ok(function)
+}
+```
+
+---
+layout: center
+---
+
+### `iseq_to_hir`でYARVINSNをコンパイル
+
+<ul>
+  <li>1. Interpreter/JIT Entry用のBasic Block, 分岐命令に対応したBasic Blockをそれぞれ作る</li>
+  <li>2. 作成しておいたBasic Blockに順にYARV INSNをコンパイルしたHIRを流し込んでいく</li>
+</ul>
+
+```rust{*|4}{maxHeight: '350px', class:'!children:text-xs'}
+/// Compile ISEQ into High-level IR
+pub fn iseq_to_hir(iseq: *const rb_iseq_t) -> Result<Function, ParseError> {
+  // 長すぎるので略...
+}
+```
+
+<Footnotes>
+CFGの枠組みを作る作業と中身を詰める作業を分離することで、コンパイル処理をやりやすくしている
+</Footnotes>
+
+
+---
+layout: center
+---
+
+### Basic Blockについて
 
 <!-- TODO: ZJIT側のCompile処理を見せる iseq_to_hir, optimize, to_lir, codegen程度でいいので-->
 <!-- TODO: mark executables調べて盛り込む-->
