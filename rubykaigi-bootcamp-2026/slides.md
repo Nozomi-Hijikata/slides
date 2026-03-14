@@ -517,23 +517,21 @@ layout: default
 ### `gen_function`でcompileを進める
 
 <ul>
-  <li>1. HIR to LIR</li>
-  <li>2. LIR to Assembly</li>
+  <li>1. HIRをLIRに変換</li>
+  <li>2. LIRをAssemblyに変換</li>
+  <li>3. VM entryとJIT entryの開始アドレスを返す※</li>
 </ul>
 
 
-```rust{*|5-8|9-10}{maxHeight: '350px', class:'!children:text-xs'}
-/// Compile a function
+```rust{*|3-6|7-8|16}{maxHeight: '320px', class:'!children:text-xs'}
 fn gen_function(cb: &mut CodeBlock, iseq: IseqPtr, version: IseqVersionRef, function: &Function) -> Result<(IseqCodePtrs, Vec<CodePtr>, Vec<IseqCallRef>), CompileError> {
     // ...
-
     // Compile each basic block
     for (rpo_idx, &block_id) in reverse_post_order.iter().enumerate() {
         // ... 略
     }
     // Generate code if everything can be compiled
     let result = asm.compile(cb);
-    // ...
     result.map(|(start_ptr, gc_offsets)| {
         // Make sure jit_entry_ptrs can be used as a parallel vector to jit_entry_insns()
         jit.jit_entries.sort_by_key(|jit_entry| jit_entry.borrow().jit_entry_idx);
@@ -546,7 +544,43 @@ fn gen_function(cb: &mut CodeBlock, iseq: IseqPtr, version: IseqVersionRef, func
 }
 ```
 
-<!-- TODO: ZJIT側のCompile処理を見せる iseq_to_hir, optimize, to_lir, codegen程度でいいので-->
+<Footnotes>
+※VMから入る場合、既にcallee frameがpushされているのに対して、JITtoJIT callは直で飛んでくるので必要な処理が違う
+</Footnotes>
+
+---
+layout: center
+---
+
+### `rb_zjit_iseq_gen_entry_point`がVM entry用のCodePtrを返す
+
+
+```rust{*|16}{maxHeight: '350px', class:'!children:text-xs'}
+/// CRuby API to compile a given ISEQ.
+/// If jit_exception is true, compile JIT code for handling exceptions.
+/// See jit_compile_exception() for details.
+#[unsafe(no_mangle)]
+pub extern "C" fn rb_zjit_iseq_gen_entry_point(iseq: IseqPtr, jit_exception: bool) -> *const u8 {
+    // Take a lock to avoid writing to ISEQ in parallel with Ractors.
+    // with_vm_lock() does nothing if the program doesn't use Ractors.
+    with_vm_lock(src_loc!(), || {
+        let cb = ZJITState::get_code_block();
+        let mut code_ptr = with_time_stat(compile_time_ns, || gen_iseq_entry_point(cb, iseq, jit_exception));
+        // ...
+        // Always mark the code region executable if asm.compile() has been used.
+        // We need to do this even if code_ptr is None because gen_iseq() may have already used asm.compile().
+        cb.mark_all_executable();
+
+        code_ptr.map_or(std::ptr::null(), |ptr| ptr.raw_ptr(cb))
+    })
+}
+```
+
+---
+layout: center
+---
+
+### このCodePtrを`rb_zjit_entry`経由で渡して、<br>`call` or `bl/blr`すれば処理が走るということですね...!!!
 <!-- TODO: mark executables調べて盛り込む-->
 
 ---
