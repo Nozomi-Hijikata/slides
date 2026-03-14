@@ -417,7 +417,7 @@ layout: center
   <li>2. 作成しておいたBasic Blockに順にYARV INSNをコンパイルしたHIRを流し込んでいく</li>
 </ul>
 
-```rust{*|4}{maxHeight: '350px', class:'!children:text-xs'}
+```rust{*}{maxHeight: '350px', class:'!children:text-xs'}
 /// Compile ISEQ into High-level IR
 pub fn iseq_to_hir(iseq: *const rb_iseq_t) -> Result<Function, ParseError> {
   // 長すぎるので略...
@@ -435,8 +435,7 @@ layout: default
 
 ### Basic Block (基本ブロック)
 
-- 分岐や合流を含まない、連続した命令の列
-- 入口は先頭の1つだけ、出口は末尾の1つだけ
+- 分岐や合流を含まない、連続した命令の列 / 入口は先頭の1つだけ、出口は末尾の1つだけ
 - Basic Blockをノードとし、分岐をエッジとしたグラフが **CFG（制御フローグラフ）**
 
 <div class="flex gap-6 mt-2 items-start">
@@ -453,33 +452,35 @@ end
 ```
 
 </div>
-<div class="text-xl mt-2">→</div>
+<div class="text-lg mt-2">→</div>
 <pre class="text-xs !leading-tight !p-3">
-┌─────────────────────────────────────────┐
-│ bb0(v0:BasicObject):                    │
-│   v1:Fixnum[1] = Const Value(1)         │
-│   v2 = SendWithoutBlock v0, :<=, v1     │
-│   IfFalse v2, bb2(v0)                   │
-└─────────┬───────────────────┬───────────┘
-          │true               │false
-          ▼                   ▼
-┌──────────────────┐ ┌─────────────────────────────────────┐
-│ bb1():           │ │ bb2(v4:BasicObject):                │
-│   v3:Fixnum[1]   │ │   v5:Fixnum[1] = Const Value(1)     │
-│  = Const Value(1)│ │   v6 = SendWithoutBlock v4,:-, v5   │
-│   Return v3      │ │   v7 = SendWithoutBlock self,:fib,v6│
-└──────────────────┘ │   v8:Fixnum[2] = Const Value(2)     │
-                     │   v9 = SendWithoutBlock v4,:-, v8   │
-                     │   v10= SendWithoutBlock self,:fib,v9│
-                     │   v11= SendWithoutBlock v7,:+, v10  │
-                     │   Return v11                        │
-                     └─────────────────────────────────────┘
+┌────────────────────────────────────────────┐
+│ bb3(v9:BasicObject, v10:BasicObject):      │
+│   v15:Fixnum[1] = Const Value(1)           │
+│   v18 = Send v10, :<=, v15                 │
+│   v21:CBool = Test v18                     │
+│   IfFalse v21, bb4(v9, v10)                │
+└──────────┬─────────────────────┬───────────┘
+           │true                 │false
+           ▼                     ▼
+┌────────────────────┐ ┌─────────────────────────────────────┐
+│ (return)           │ │ bb4(v32:BasicObject,                │
+│   v27:Fixnum[1]    │ │     v33:BasicObject):               │
+│    = Const Value(1)│ │   v39:Fixnum[1] = Const Value(1)    │
+│   Return v27       │ │   v42 = Send v33, :-, v39           │
+└────────────────────┘ │   v44 = Send v32, :fib, v42         │
+                       │   v50:Fixnum[2] = Const Value(2)    │
+                       │   v53 = Send v33, :-, v50           │
+                       │   v55 = Send v32, :fib, v53         │
+                       │   v58 = Send v44, :+, v55           │
+                       │   Return v58                        │
+                       └─────────────────────────────────────┘
 </pre>
 </div>
 
 <Footnotes>
-ZJITではbasic block argumentsを採用しており、ブロック間の値の受け渡しを引数で表現する / 
-上の図は概念図であり実態とは必ずしも一致しない
+ZJITではbasic block argumentsを採用しており、ブロック間の値の受け渡しを引数で表現する cf. Phi function<br>
+※上の図は説明のための概念図であり実態とは一致しない(ZJITではBBを分岐の片側しか作らない様にしている)
 </Footnotes>
 
 <!-- TODO: ZJIT側のCompile処理を見せる iseq_to_hir, optimize, to_lir, codegen程度でいいので-->
