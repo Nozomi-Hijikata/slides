@@ -882,6 +882,155 @@ bb3(v11, v12, v13):
 barの<code>SendDirect</code>がfooのJITコンパイル済みコードを直接呼び出す / EntryPoint等は省略
 </Footnotes>
 
+
+---
+layout: center
+---
+
+### `SendDirect`のcodegenはこんな感じ
+
+dummy ptrと思しきものを埋め込んでcall命令を呼んでいそうだね
+```rust{*|9|10-14}{maxHeight: '350px', class:'!children:text-xs'}
+/// Compile a direct call to an ISEQ method.
+/// If `block_handler` is provided, it's used as the specval for the new frame (for forwarding blocks).
+/// Otherwise, `VM_BLOCK_HANDLER_NONE` is used.
+fn gen_send_iseq_direct(
+  //...
+) -> lir::Opnd {
+    // params setupなど...
+    // Set up the new frame
+    gen_push_frame(asm, args.len(), state, ControlFrame {...});
+    // Make a method call. The target address will be rewritten once compiled.
+    let iseq_call = IseqCall::new(iseq, num_optionals_passed);
+    let dummy_ptr = cb.get_write_ptr().raw_ptr(cb);
+    jit.iseq_calls.push(iseq_call.clone());
+    let ret = asm.ccall_with_iseq_call(dummy_ptr, c_args, &iseq_call);
+    // side exit処理など... 
+    ret
+}
+```
+
+---
+layout: center
+---
+
+### 少し遡って`gen_iseq_entry_point`をみる
+
+
+```rust{*|12}{maxHeight: '350px', class:'!children:text-xs'}
+/// Compile an entry point for a given ISEQ
+fn gen_iseq_entry_point(cb: &mut CodeBlock, iseq: IseqPtr, jit_exception: bool) -> Result<CodePtr, CompileError> {
+    // We don't support exception handlers yet
+    if jit_exception {
+        return Err(CompileError::ExceptionHandler);
+    }
+    // Compile ISEQ into High-level IR
+    let function = crate::stats::with_time_stat(Counter::compile_hir_time_ns, || compile_iseq(iseq).inspect_err(|_| {
+        incr_counter!(failed_iseq_count);
+    }))?;
+    // Compile the High-level IR
+    let IseqCodePtrs { start_ptr, .. } = gen_iseq(cb, iseq, Some(&function)).inspect_err(|err| {
+        debug!("{err:?}: gen_iseq failed: {}", iseq_get_location(iseq, 0));
+    })?;
+
+    Ok(start_ptr)
+}
+```
+
+---
+layout: center
+---
+
+### `gen_iseq_call`なるものをみると、`gen_iseq_call`がおり、
+
+
+```rust{*|15-18}{maxHeight: '350px', class:'!children:text-xs'}
+/// Compile an ISEQ into machine code
+fn gen_iseq_body(...) -> Result<IseqCodePtrs, CompileError> {
+    // If we ran out of code region, we shouldn't attempt to generate new code.
+    if cb.has_dropped_bytes() {
+        return Err(CompileError::OutOfMemory);
+    }
+    // Convert ISEQ into optimized High-level IR if not given
+    let function = match function {
+        Some(function) => function,
+        None => &crate::stats::with_time_stat(Counter::compile_hir_time_ns, || compile_iseq(iseq))?,
+    };
+    // Compile the High-level IR
+    let (iseq_code_ptrs, gc_offsets, iseq_calls) =
+        crate::stats::with_time_stat(Counter::compile_lir_time_ns, || gen_function(cb, iseq, version, function))?;
+    // Stub callee ISEQs for JIT-to-JIT calls
+    for iseq_call in iseq_calls.iter() {
+        gen_iseq_call(cb, iseq_call)?;
+    }
+    // Prepare for GC
+    unsafe { version.as_mut() }.outgoing.extend(iseq_calls);
+    append_gc_offsets(iseq, version, &gc_offsets);
+    Ok(iseq_code_ptrs)
+}
+```
+
+
+---
+layout: center
+---
+
+### `gen_function_stub`とやらをよんでいる
+
+
+```rust{*|3-4|8-14}{maxHeight: '350px', class:'!children:text-xs'}
+/// Stub a branch for a JIT-to-JIT call
+pub fn gen_iseq_call(cb: &mut CodeBlock, iseq_call: &IseqCallRef) -> Result<(), CompileError> {
+    // Compile a function stub
+    let stub_ptr = gen_function_stub(cb, iseq_call.clone()).inspect_err(|err| {
+        debug!("{err:?}: gen_function_stub failed: {}", iseq_get_location(iseq_call.iseq.get(), 0));
+    })?;
+
+    // Update the JIT-to-JIT call to call the stub
+    let stub_addr = stub_ptr.raw_ptr(cb);
+    let iseq = iseq_call.iseq.get();
+    iseq_call.regenerate(cb, |asm| {
+        asm_comment!(asm, "call function stub: {}", iseq_get_location(iseq, 0));
+        asm.ccall_into(C_RET_OPND, stub_addr, vec![]);
+    });
+    Ok(())
+}
+```
+
+---
+layout: center
+---
+
+### `gen_function_stub`では、<br>呼び出されると`function_stub_hit_trampoline`に飛ぶようになっている
+
+```rust{*|11}{maxHeight: '350px', class:'!children:text-xs'}
+/// Compile a stub for an ISEQ called by SendDirect
+fn gen_function_stub(cb: &mut CodeBlock, iseq_call: IseqCallRef) -> Result<CodePtr, CompileError> {
+    let (mut asm, scratch_reg) = Assembler::new_with_scratch_reg();
+    asm.new_block_without_id("gen_function_stub");
+    asm_comment!(asm, "Stub: {}", iseq_get_location(iseq_call.iseq.get(), 0));
+
+    // Call function_stub_hit using the shared trampoline. See `gen_function_stub_hit_trampoline`.
+    // Use load_into instead of mov, which is split on arm64, to avoid clobbering ALLOC_REGS.
+    asm.load_into(scratch_reg, Opnd::const_ptr(Rc::into_raw(iseq_call)));
+    asm.cpush(scratch_reg);
+    asm.jmp(ZJITState::get_function_stub_hit_trampoline().into());
+
+    asm.compile(cb).map(|(code_ptr, gc_offsets)| {
+        assert_eq!(gc_offsets.len(), 0);
+        code_ptr
+    })
+}
+```
+
+---
+layout: center
+---
+
+## TODO: JIT to JIT Callの続き
+
+
+<!-- 以下TODO -->
 ---
 layout: center
 ---
