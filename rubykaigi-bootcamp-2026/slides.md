@@ -383,6 +383,33 @@ pub extern "C" fn rb_zjit_iseq_gen_entry_point(iseq: IseqPtr, jit_exception: boo
 layout: center
 ---
 
+### `gen_iseq_entry_point`が`compile_iseq`を呼び出す
+
+
+```rust{*|8}{maxHeight: '350px', class:'!children:text-xs'}
+/// Compile an entry point for a given ISEQ
+fn gen_iseq_entry_point(cb: &mut CodeBlock, iseq: IseqPtr, jit_exception: bool) -> Result<CodePtr, CompileError> {
+    // We don't support exception handlers yet
+    if jit_exception {
+        return Err(CompileError::ExceptionHandler);
+    }
+    // Compile ISEQ into High-level IR
+    let function = crate::stats::with_time_stat(Counter::compile_hir_time_ns, || compile_iseq(iseq).inspect_err(|_| {
+        incr_counter!(failed_iseq_count);
+    }))?;
+    // Compile the High-level IR
+    let IseqCodePtrs { start_ptr, .. } = gen_iseq(cb, iseq, Some(&function)).inspect_err(|err| {
+        debug!("{err:?}: gen_iseq failed: {}", iseq_get_location(iseq, 0));
+    })?;
+
+    Ok(start_ptr)
+}
+```
+
+---
+layout: center
+---
+
 ### 順に辿っていくと`compile_iseq` -> `iseq_to_hir`でHIRをコンパイル
 
 
@@ -800,7 +827,60 @@ layout: center
 
 ## JIT to JIT callが面白いのでじっくりみていく
 
+calleeがISEQの場合、そちらもJITコンパイルできるはずですよね
 
+
+---
+layout: default
+---
+
+## JIT to JIT callは<code>SendDirect</code> HIRによって表現される
+
+```rb
+def foo(a, b) = a + b
+def bar(a, b) = foo(a * 2, b * 3)
+bar(2, 3); bar(2, 3)
+```
+
+<div class="flex gap-4 mt-2">
+<div class="flex-1">
+
+```{*|12}{class:'!children:text-xs', maxHeight:'320px'}
+fn bar:
+bb3(v11, v12, v13):
+  v19:Fixnum[2] = Const Value(2)
+  PatchPoint MethodRedefined(Integer, *)
+  v41:Fixnum = GuardType v12, Fixnum
+  v42:Fixnum = FixnumMult v41, v19
+  v25:Fixnum[3] = Const Value(3)
+  v45:Fixnum = GuardType v13, Fixnum
+  v46:Fixnum = FixnumMult v45, v25
+  PatchPoint MethodRedefined(Object, foo)
+  v37 = GuardType v11, ObjectSubclass
+  v38 = SendDirect v37, :foo, v42, v46
+  Return v38
+```
+
+</div>
+<div class="text-lg mt-24">→</div>
+<div class="flex-1">
+
+```{*}{class:'!children:text-xs', maxHeight:'320px'}
+fn foo:
+bb3(v11, v12, v13):
+  PatchPoint MethodRedefined(Integer, +)
+  v28:Fixnum = GuardType v12, Fixnum
+  v29:Fixnum = GuardType v13, Fixnum
+  v30:Fixnum = FixnumAdd v28, v29
+  Return v30
+```
+
+</div>
+</div>
+
+<Footnotes>
+barの<code>SendDirect</code>がfooのJITコンパイル済みコードを直接呼び出す / EntryPoint等は省略
+</Footnotes>
 
 ---
 layout: center
