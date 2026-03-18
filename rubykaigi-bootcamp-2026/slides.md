@@ -414,7 +414,7 @@ layout: center
 
 <ul>
   <li>1. Interpreter/JIT Entry用のBasic Block, 分岐命令に対応したBasic Blockをそれぞれ作る</li>
-  <li>2. 作成しておいたBasic Blockに順にYARV INSNをコンパイルしたHIRをBasic Blockに流し込んでいく</li>
+  <li>2. 作成しておいたBasic Blockに順にYARV INSNをコンパイルしたHIRをBasic Blockに流し込んでいき、それぞれを繋ぐ</li>
 </ul>
 
 ```rust{*}{maxHeight: '350px', class:'!children:text-xs'}
@@ -425,7 +425,7 @@ pub fn iseq_to_hir(iseq: *const rb_iseq_t) -> Result<Function, ParseError> {
 ```
 
 <Footnotes>
-CFGの枠組みを作る作業と中身を詰める作業を分離することで、コンパイル処理をやりやすくしている
+CFGの枠組みを作る作業と中身を詰めて繋ぐ作業を分離することで、コンパイル処理をやりやすくしている
 </Footnotes>
 
 
