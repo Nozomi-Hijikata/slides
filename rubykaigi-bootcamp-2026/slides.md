@@ -663,7 +663,8 @@ layout: default
     <li class="mb-6"><strong class="text-xl">C定義関数を直接呼ぶ最適化</strong>
       <ul>
         <li>コンパイル時に対象となる関数を確定・実行時のメソッド探索を省く</li>
-        <li><code>CCall</code>, <code>CCallVariadic</code> HIR</li>
+        <li><code>CCallWithFrame</code>, <code>CCallVariadic</code>... HIR</li>
+        <li>いくつかパターンがある</li>
       </ul>
     </li>
   </v-click>
@@ -679,7 +680,7 @@ layout: default
 </ul>
 
 <Footnotes>
-  2026 1月 技術開発全体会より再掲
+  2026年1月 技術開発全体会より再掲
 </Footnotes>
 
 
@@ -698,9 +699,9 @@ graph LR
         A["Send v0, :+, v1"]
     end
     subgraph VM["VM (interpreter)"]
-        B["method lookup"] --> C["dispatch"] --> D["execute"]
+        B["method lookup"] --> C["dispatch"] --> D["execute(VM_EXEC)"]
     end
-    A -- "call vm_sendish" --> B
+    A -- "call rb_vm_send" --> B
     D -- "return" --> A
 ```
 
@@ -712,40 +713,37 @@ polymorphicなcall siteやprofile情報が不足している場合などにfallb
 layout: default
 ---
 
-## C定義関数を直接呼ぶ最適化 ① CCallVariadic
+## C定義関数を直接呼ぶ最適化1: 汎用CCall
 
-- Ruby Cメソッド呼び出しの意味論を再現する経路
-- variadic C関数は <code>func(int argc, VALUE *argv, VALUE recv)</code> 形
-- VM frame状態を成立させる必要があるため重い
+- C定義関数を直接呼ぶパターンその１
+- VM frame状態を成立させる必要があるため重い (e.g. 内部で他のRuby場合など)
 
-```mermaid {scale: 0.7}
+```mermaid {scale: 0.9}
 graph LR
     subgraph JIT["JIT code"]
-        A["stack overflow check<br/>save PC/SP<br/>spill stack/locals"] --> B["gen_push_frame<br/>SP/CFP切替<br/>block handler"]
+        A["frame setup"]
     end
     subgraph CF["C function"]
-        C["cfunc(argc, argv, recv)"]
+        B["cfunc(argc, argv, recv)"]
     end
     subgraph JIT2["JIT code (後処理)"]
-        D["frame pop<br/>SP復元"]
+        C["frame pop<br/>SP復元"]
     end
-    B --> C --> D
+    A --> B --> C
 ```
 
-<Footnotes>
-leaf && no_gc な関数はCCallVariadicではなく軽量なCCallに落とす最適化もある
-</Footnotes>
 
 ---
 layout: default
 ---
 
-## C定義関数を直接呼ぶ最適化 ② ランタイムhelper call
+## C定義関数を直接呼ぶ最適化2: C ABIに従って直接Call
 
+- frameを積まない軽量なdirect c call
+- calleeの処理がFrameセットアップを必要としない場合などに限って使える
 - <code>HashAref</code>等、特定メソッド用のHIR命令
-- frameを積まない軽量なhelper call
 
-```mermaid {scale: 0.8}
+```mermaid {scale: 0.9}
 graph LR
     subgraph JIT["JIT code"]
         A["save PC/SP<br/>spill stack/locals"]
@@ -757,7 +755,8 @@ graph LR
 ```
 
 <Footnotes>
-①と比べてframe push/pop・SP/CFP切替が不要なため軽い
+1と比べてframe push/pop・SP/CFP切替が不要なため軽い<br>
+PC/SPなどのspill(VM Stackへの同期)が必要なのは例外/GC発生時に対応するため
 </Footnotes>
 
 ---
@@ -780,7 +779,7 @@ graph LR
 ```
 
 <Footnotes>
-全てのガードが通れば関数呼び出しなしで直接メモリ操作 / ガード失敗時はside_exitでVMに戻る
+全てのガードが通れば関数呼び出しなしで直接メモリ操作 / ガード失敗時はside exitでVMに戻るのでトレードオフ（side exitが多すぎるとNG）
 </Footnotes>
 
 
