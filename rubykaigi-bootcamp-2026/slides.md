@@ -648,11 +648,11 @@ layout: center
 layout: default
 ---
 
-##  JITからのメソッド呼び出しをする方法はざっくり3つ
+##  JITからのメソッド呼び出しをする方法はざっくり4つ
 
 <ul>
   <v-click>
-    <li class="mb-6"><strong class="text-xl">genericな命令を使う</strong>
+    <li class="mb-2"><strong class="text-lg">genericな命令を使う</strong>
       <ul>
         <li>VMの処理をそのまま利用する(Fallback)</li>
         <li><code>Send</code> HIR</li>
@@ -660,7 +660,7 @@ layout: default
     </li>
   </v-click>
   <v-click>
-    <li class="mb-6"><strong class="text-xl">C定義関数を直接呼ぶ最適化</strong>
+    <li class="mb-2"><strong class="text-lg">C定義関数を直接呼ぶ最適化</strong>
       <ul>
         <li>コンパイル時に対象となる関数を確定・実行時のメソッド探索を省く</li>
         <li><code>CCallWithFrame</code>, <code>CCallVariadic</code>... HIR</li>
@@ -669,7 +669,7 @@ layout: default
     </li>
   </v-click>
   <v-click>
-    <li class="mb-6"><strong class="text-xl">機械語で直接メモリを操作する</strong>
+    <li class="mb-2"><strong class="text-lg">機械語で直接メモリを操作する</strong>
       <ul>
         <li>C関数呼び出しのセットアップを省く/命令流の切り替えにコストがかかる分岐命令(<code>call</code>,<code>bl/blr</code>)を削除できる</li>
         <li>壊れないようにするための前提/ガードが必要</li>
@@ -677,10 +677,15 @@ layout: default
       </ul>
     </li>
   </v-click>
+  <v-click>
+    <li class="mb-2"><strong class="text-lg">JIT to JIT Call</strong>
+      <ul>後述</ul>
+    </li>
+  </v-click>
 </ul>
 
 <Footnotes>
-  2026年1月 技術開発全体会より再掲
+  2026年1月 技術開発全体会より再掲(一部更新)
 </Footnotes>
 
 
@@ -692,13 +697,14 @@ layout: default
 
 - JIT側で最適化できない場合、VMのdispatch処理をそのまま呼び出す
 - メソッド探索・引数セットアップなど全てVM任せ
+- まるまるVM Loopを回すので重たいし極力やりたくない
 
 ```mermaid {scale: 0.9}
 graph LR
     subgraph JIT["JIT code"]
         A["Send v0, :+, v1"]
     end
-    subgraph VM["VM (interpreter)"]
+    subgraph VM["VM"]
         B["method lookup"] --> C["dispatch"] --> D["execute(VM_EXEC)"]
     end
     A -- "call rb_vm_send" --> B
@@ -716,12 +722,13 @@ layout: default
 ## C定義関数を直接呼ぶ最適化1: 汎用CCall
 
 - C定義関数を直接呼ぶパターンその１
-- VM frame状態を成立させる必要があるため重い (e.g. 内部で他のRuby場合など)
+- 呼び出し先が確定しているとはいえ、VM frame状態を成立させる必要があるためそこそこ重い
+- 内部で他のRubyメソッドを呼ぶ場合など（e.g. `BasicObject#!=`）
 
 ```mermaid {scale: 0.9}
 graph LR
     subgraph JIT["JIT code"]
-        A["frame setup"]
+        A["frame push"]
     end
     subgraph CF["C function"]
         B["cfunc(argc, argv, recv)"]
@@ -739,7 +746,7 @@ layout: default
 
 ## C定義関数を直接呼ぶ最適化2: C ABIに従って直接Call
 
-- frameを積まない軽量なdirect c call
+- Frameを積まない軽量なdirect c call
 - calleeの処理がFrameセットアップを必要としない場合などに限って使える
 - <code>HashAref</code>等、特定メソッド用のHIR命令
 
@@ -774,15 +781,38 @@ graph LR
     subgraph JIT["JIT code"]
         A["Guard<br/>(型/frozen/範囲)"] --> B["UnboxFixnum<br/>ArrayLength"] --> C["ArrayAset<br/>直接メモリ書込"]
     end
-    A -. "ガード失敗" .-> D["side_exit<br/>→ VM fallback"]
-    C --> E["Return<br/>関数呼び出しゼロ"]
+    A -. "ガード失敗" .-> D["side_exit<br/>→ VMに戻る"]
 ```
 
 <Footnotes>
 全てのガードが通れば関数呼び出しなしで直接メモリ操作 / ガード失敗時はside exitでVMに戻るのでトレードオフ（side exitが多すぎるとNG）
 </Footnotes>
 
+---
+layout: center
+---
+
+## 最初の3つはこんな感じです
+
+---
+layout: center
+---
+
+## JIT to JIT callが面白いのでじっくりみていく
 
 
 
+---
+layout: center
+---
+
+## TODO: Profilingの解説
+
+---
+layout: center
+---
+
+## TODO: Side Exit / Frameの解説
+
+<!-- 間に合えばPatchpointも入れたい -->
 <!-- TODO: mark executables調べて盛り込む-->
