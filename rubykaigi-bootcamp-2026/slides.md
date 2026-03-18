@@ -1127,7 +1127,7 @@ fn function_stub_hit_body(cb: &mut CodeBlock, iseq_call: &IseqCallRef) -> Result
 layout: center
 ---
 
-## TODO: JIT to JIT Callの続き
+## TODO: JIT to JIT Callの続き(初回経路・２回目以降の経路を図で示してあげる)
 
 
 <!-- 以下TODO -->
