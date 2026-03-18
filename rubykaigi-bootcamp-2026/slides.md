@@ -581,7 +581,6 @@ layout: center
 ---
 
 ### このCodePtrを`rb_zjit_entry`経由で渡して、<br>`call` or `bl/blr`すれば処理が走るということですね...!!!
-<!-- TODO: mark executables調べて盛り込む-->
 
 ---
 layout: center
@@ -593,7 +592,7 @@ layout: center
 layout: center
 ---
 
-# xxx (最適化)
+## 大枠が見えたところで最適化の話をしましょう
 
 ---
 layout: default
@@ -603,13 +602,13 @@ layout: default
 
 <ul class="text-sm">
   <v-click>
-    <li class="mb-3"><strong class="text-lg">命令の実行回数を減らす</strong>
+    <li class="mb-3"><strong class="text-lg" v-mark.circle.orange="4">命令の実行回数を減らす</strong>
       <ul class="text-xs">
+        <li>命令を特殊化する</li>
         <li>一度実行した結果を再利用する</li>
         <li>コンパイル時に実行できるもののは実行する</li>
         <li>冗長な命令を削除する</li>
         <li>実行回数を減らす様にプログラムの形を変形する</li>
-        <li>特殊化する</li>
         <li> etc...</li>
       </ul>
     </li>
@@ -638,5 +637,153 @@ layout: default
   ref: コンパイラの構成と最適化 第2版, 中田育男, 2009<br>
 </Footnotes>
 
+---
+layout: center
+---
+
+## 命令の特殊化が比較的わかりやすいのでみていきましょう
 
 
+---
+layout: default
+---
+
+##  JITからのメソッド呼び出しをする方法はざっくり3つ
+
+<ul>
+  <v-click>
+    <li class="mb-6"><strong class="text-xl">genericな命令を使う</strong>
+      <ul>
+        <li>VMの処理をそのまま利用する(Fallback)</li>
+        <li><code>Send</code> HIR</li>
+      </ul>
+    </li>
+  </v-click>
+  <v-click>
+    <li class="mb-6"><strong class="text-xl">C定義関数を直接呼ぶ最適化</strong>
+      <ul>
+        <li>コンパイル時に対象となる関数を確定・実行時のメソッド探索を省く</li>
+        <li><code>CCall</code>, <code>CCallVariadic</code> HIR</li>
+      </ul>
+    </li>
+  </v-click>
+  <v-click>
+    <li class="mb-6"><strong class="text-xl">機械語で直接メモリを操作する</strong>
+      <ul>
+        <li>C関数呼び出しのセットアップを省く/命令流の切り替えにコストがかかる分岐命令(<code>call</code>,<code>bl/blr</code>)を削除できる</li>
+        <li>壊れないようにするための前提/ガードが必要</li>
+        <li>※残念ながら常に使えるわけではない</li>
+      </ul>
+    </li>
+  </v-click>
+</ul>
+
+<Footnotes>
+  2026 1月 技術開発全体会より再掲
+</Footnotes>
+
+
+---
+layout: default
+---
+
+## VMの処理をそのまま利用する(Fallback)
+
+- JIT側で最適化できない場合、VMのdispatch処理をそのまま呼び出す
+- メソッド探索・引数セットアップなど全てVM任せ
+
+```mermaid {scale: 0.9}
+graph LR
+    subgraph JIT["JIT code"]
+        A["Send v0, :+, v1"]
+    end
+    subgraph VM["VM (interpreter)"]
+        B["method lookup"] --> C["dispatch"] --> D["execute"]
+    end
+    A -- "call vm_sendish" --> B
+    D -- "return" --> A
+```
+
+<Footnotes>
+polymorphicなcall siteやprofile情報が不足している場合などにfallbackする
+</Footnotes>
+
+---
+layout: default
+---
+
+## C定義関数を直接呼ぶ最適化 ① CCallVariadic
+
+- Ruby Cメソッド呼び出しの意味論を再現する経路
+- variadic C関数は <code>func(int argc, VALUE *argv, VALUE recv)</code> 形
+- VM frame状態を成立させる必要があるため重い
+
+```mermaid {scale: 0.7}
+graph LR
+    subgraph JIT["JIT code"]
+        A["stack overflow check<br/>save PC/SP<br/>spill stack/locals"] --> B["gen_push_frame<br/>SP/CFP切替<br/>block handler"]
+    end
+    subgraph CF["C function"]
+        C["cfunc(argc, argv, recv)"]
+    end
+    subgraph JIT2["JIT code (後処理)"]
+        D["frame pop<br/>SP復元"]
+    end
+    B --> C --> D
+```
+
+<Footnotes>
+leaf && no_gc な関数はCCallVariadicではなく軽量なCCallに落とす最適化もある
+</Footnotes>
+
+---
+layout: default
+---
+
+## C定義関数を直接呼ぶ最適化 ② ランタイムhelper call
+
+- <code>HashAref</code>等、特定メソッド用のHIR命令
+- frameを積まない軽量なhelper call
+
+```mermaid {scale: 0.8}
+graph LR
+    subgraph JIT["JIT code"]
+        A["save PC/SP<br/>spill stack/locals"]
+    end
+    subgraph CF["C function (helper)"]
+        B["rb_hash_aref(hash, key)"]
+    end
+    A --> B
+```
+
+<Footnotes>
+①と比べてframe push/pop・SP/CFP切替が不要なため軽い
+</Footnotes>
+
+---
+layout: default
+---
+
+## 機械語で直接メモリを操作する
+
+- C関数すら呼ばず、機械語レベルで直接メモリを読み書きする
+- 関数呼び出しのオーバーヘッドが完全に消える
+- それ専用の汎用命令を作っていたりする(e.g. `ArrayAset`)
+
+```mermaid {scale: 0.8}
+graph LR
+    subgraph JIT["JIT code"]
+        A["Guard<br/>(型/frozen/範囲)"] --> B["UnboxFixnum<br/>ArrayLength"] --> C["ArrayAset<br/>直接メモリ書込"]
+    end
+    A -. "ガード失敗" .-> D["side_exit<br/>→ VM fallback"]
+    C --> E["Return<br/>関数呼び出しゼロ"]
+```
+
+<Footnotes>
+全てのガードが通れば関数呼び出しなしで直接メモリ操作 / ガード失敗時はside_exitでVMに戻る
+</Footnotes>
+
+
+
+
+<!-- TODO: mark executables調べて盛り込む-->
