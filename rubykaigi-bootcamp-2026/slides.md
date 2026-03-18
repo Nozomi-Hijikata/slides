@@ -1027,6 +1027,106 @@ fn gen_function_stub(cb: &mut CodeBlock, iseq_call: IseqCallRef) -> Result<CodeP
 layout: center
 ---
 
+### `function_stub_hit_trampoline`は`function_stub_hit`を呼び出す
+
+```rust{*|8-9}{maxHeight: '350px', class:'!children:text-xs'}
+/// Generate a trampoline that is used when a function stub is called.
+/// See [gen_function_stub] for how it's used.
+pub fn gen_function_stub_hit_trampoline(cb: &mut CodeBlock) -> Result<CodePtr, CompileError> {
+    let (mut asm, scratch_reg) = Assembler::new_with_scratch_reg();
+    asm.new_block_without_id("function_stub_hit_trampoline");
+    asm_comment!(asm, "function_stub_hit trampoline");
+    // ...
+    // Compile the stubbed ISEQ
+    let jump_addr = asm_ccall!(asm, function_stub_hit, C_ARG_OPNDS[0], CFP, SP);
+    asm.mov(scratch_reg, jump_addr);
+    // ...
+    // Jump to scratch_reg so that cpop_into() doesn't clobber it
+    asm.jmp_opnd(scratch_reg);
+
+    asm.compile(cb).map(|(code_ptr, gc_offsets)| {
+        assert_eq!(gc_offsets.len(), 0);
+        code_ptr
+    })
+}
+```
+
+---
+layout: center
+---
+
+### `function_stub_hit`は`function_stub_hit_body`を呼び出して、
+
+```rust{*|13}{maxHeight: '350px', class:'!children:text-xs'}
+/// Generated code calls this function with the SysV calling convention. See [gen_function_stub].
+/// This function is expected to be called repeatedly when ZJIT fails to compile the stub.
+/// We should be able to compile most (if not all) function stubs by side-exiting at unsupported
+/// instructions, so this should be used primarily for cb.has_dropped_bytes() situations.
+fn function_stub_hit(iseq_call_ptr: *const c_void, cfp: CfpPtr, sp: *mut VALUE) -> *const u8 {
+    with_vm_lock(src_loc!(), || {
+        // gen_push_frame() doesn't set PC, so we need to set them before exit.
+        // function_stub_hit_body() may allocate and call gc_validate_pc(), so we always set PC.
+        let iseq_call = unsafe { Rc::from_raw(iseq_call_ptr as *const IseqCall) };
+        let iseq = iseq_call.iseq.get();
+        // ...
+        // Otherwise, attempt to compile the ISEQ. We have to mark_all_executable() beyond this point.
+        let code_ptr = with_time_stat(compile_time_ns, || function_stub_hit_body(cb, &iseq_call));
+        if code_ptr.is_ok() {
+            if let Some(version) = payload.versions.last_mut() {
+                unsafe { version.as_mut() }.incoming.push(iseq_call);
+            }
+        }
+        let code_ptr = code_ptr.unwrap_or_else(|compile_error| {
+            // We'll use this Rc again, so increment the ref count decremented by from_raw.
+            unsafe { Rc::increment_strong_count(iseq_call_ptr as *const IseqCall); }
+
+            prepare_for_exit(iseq, cfp, sp, &compile_error);
+            ZJITState::get_exit_trampoline_with_counter()
+        });
+        cb.mark_all_executable();
+        code_ptr.raw_ptr(cb)
+    })
+}
+```
+
+---
+layout: default
+---
+
+### `function_stub_hit_body`は`gen_iseq`を呼んでCallee ISEQをコンパイルしている
+<!-- TODO:内容要チェック -->
+<ul>
+  <li>1. Callee ISEQをコンパイル</li>
+  <li>2. コンパイルしたISEQを指定の領域に書き込む</li>
+  <li>3. stubのcall先をコンパイルしたISEQで書き換える</li>
+</ul>
+
+```rust{*|4|12-15}{maxHeight: '350px', class:'!children:text-xs'}
+//// Compile an ISEQ for a function stub
+fn function_stub_hit_body(cb: &mut CodeBlock, iseq_call: &IseqCallRef) -> Result<CodePtr, CompileError> {
+    // Compile the stubbed ISEQ
+    let IseqCodePtrs { jit_entry_ptrs, .. } = gen_iseq(cb, iseq_call.iseq.get(), None).inspect_err(|err| {
+        debug!("{err:?}: gen_iseq failed: {}", iseq_get_location(iseq_call.iseq.get(), 0));
+    })?;
+
+    // Update the stub to call the code pointer
+    let jit_entry_ptr = jit_entry_ptrs[iseq_call.jit_entry_idx.to_usize()];
+    let code_addr = jit_entry_ptr.raw_ptr(cb);
+    let iseq = iseq_call.iseq.get();
+    iseq_call.regenerate(cb, |asm| {
+        asm_comment!(asm, "call compiled function: {}", iseq_get_location(iseq, 0));
+        asm.ccall_into(C_RET_OPND, code_addr, vec![]);
+    });
+
+    Ok(jit_entry_ptr)
+}
+```
+
+
+---
+layout: center
+---
+
 ## TODO: JIT to JIT Callの続き
 
 
