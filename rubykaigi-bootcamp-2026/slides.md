@@ -1195,7 +1195,7 @@ flowchart LR
 ```
 
 ---
-layout: center
+layout: default
 ---
 
 ## 面白いですよね

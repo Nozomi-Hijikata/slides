@@ -15,4 +15,8 @@
   opacity: 0.8;
   line-height: 1.4;
 }
+
+.slidev-layout.center .footnotes {
+  text-align: center;
+}
 </style>
