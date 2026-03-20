@@ -1093,12 +1093,11 @@ fn function_stub_hit(iseq_call_ptr: *const c_void, cfp: CfpPtr, sp: *mut VALUE) 
 layout: default
 ---
 
-### `function_stub_hit_body`は`gen_iseq`を呼んでCallee ISEQをコンパイルしている
-<!-- TODO:内容要チェック -->
+### `function_stub_hit_body`は`gen_iseq`を呼んでCallee ISEQをコンパイル
 <ul>
   <li>1. Callee ISEQをコンパイル</li>
-  <li>2. コンパイルしたISEQを指定の領域に書き込む</li>
-  <li>3. stubのcall先をコンパイルしたISEQで書き換える</li>
+  <li>2. stubのcall先をコンパイルしたISEQへのaddressで書き換える</li>
+  <li>3. Callee ISEQのentry pointを返す</li>
 </ul>
 
 ```rust{*|4|12-15}{maxHeight: '350px', class:'!children:text-xs'}
@@ -1122,13 +1121,94 @@ fn function_stub_hit_body(cb: &mut CodeBlock, iseq_call: &IseqCallRef) -> Result
 }
 ```
 
+---
+layout: center
+---
+
+### 返却されたentrypointへtrampolineはjumpする
+
+```rust{*|9,10|12-13}{maxHeight: '350px', class:'!children:text-xs'}
+/// Generate a trampoline that is used when a function stub is called.
+/// See [gen_function_stub] for how it's used.
+pub fn gen_function_stub_hit_trampoline(cb: &mut CodeBlock) -> Result<CodePtr, CompileError> {
+    let (mut asm, scratch_reg) = Assembler::new_with_scratch_reg();
+    asm.new_block_without_id("function_stub_hit_trampoline");
+    asm_comment!(asm, "function_stub_hit trampoline");
+    // ...
+    // Compile the stubbed ISEQ
+    let jump_addr = asm_ccall!(asm, function_stub_hit, C_ARG_OPNDS[0], CFP, SP);
+    asm.mov(scratch_reg, jump_addr);
+    // ...
+    // Jump to scratch_reg so that cpop_into() doesn't clobber it
+    asm.jmp_opnd(scratch_reg);
+
+    asm.compile(cb).map(|(code_ptr, gc_offsets)| {
+        assert_eq!(gc_offsets.len(), 0);
+        code_ptr
+    })
+}
+```
 
 ---
 layout: center
 ---
 
-## TODO: JIT to JIT Callの続き(初回経路・２回目以降の経路を図で示してあげる)
+## 話をまとめましょう
 
+
+---
+layout: default
+---
+
+## JIT to JIT Call: 初回呼び出し
+
+- calleeが未コンパイルなので、stubを経由してその場でコンパイルする
+- コンパイル成功後、stub → 本物のJIT entryにパッチされる
+
+```mermaid {scale: 0.6}
+flowchart LR
+    A["caller callsite<br/>(call stub)"] --> S["stub"]
+    S --> T["trampoline"]
+    T --> H["function_stub_hit_body<br/>callee ISEQをコンパイル"]
+    H --> P["callsiteをパッチ<br/>stub → jit_entry_ptr"]
+    H --> J["jit_entry_ptrを返す"]
+    J --> T2["trampoline<br/>jmp jit_entry_ptr"]
+    T2 --> C["callee JIT code実行"]
+    C -- "ret命令でcallsiteへ戻る" --> A
+```
+
+<Footnotes>
+stubをcallで呼んだ先では、jumpでjit_entry_ptrに入っているので、<br>callee側のretでcaller側に戻ることができる(stackに残っている戻り先を使えば良いだけなので)
+</Footnotes>
+
+---
+layout: default
+---
+
+## JIT to JIT Call: 2回目以降
+
+- 初回でstubがパッチ済みなので、直接callee JIT codeにcallできる
+
+```mermaid {scale: 0.8}
+flowchart LR
+    A["caller callsite<br/>(patched)"] -->|"direct call"| C["callee JIT code実行"]
+```
+
+---
+layout: center
+---
+
+## 面白いですよね
+
+全部が全部一気にコンパイルするとbootstrapに遅くなってしまう上に、<br>無駄にメモリも食うので可能な限りOn-demand Compilationをしているということなんですね。
+
+似たようなことはJava VM実装の一つであるJakes RVM<span class='text-xs'>※1</span>だったり、VMKit<span class='text-xs'>※2</span>でもやられていたりします
+
+
+<Footnotes>
+※1: <a href="https://www.usenix.org/legacy/event/vm04/tech/full_papers/glew/glew.pdf" target="_blank">Glew, N., Triantafyllis, S., Cierniak, M., Eng, M., Lewis, B. T., & Stichnoth, J. M. (2004).</a><br>
+※2: <a href="https://llvm.org/pubs/2010-03-VEE-VMKit.pdf" target="_blank">Geoffray, N., Thomas, G., Lawall, J., Muller, G., & Folliot, B. (2010).</a>
+</Footnotes>
 
 <!-- 以下TODO -->
 ---
