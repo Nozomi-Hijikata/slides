@@ -1329,7 +1329,7 @@ layout: center
 layout: center
 ---
 
-## VMからの情報(class/shape/flag...)を動的に集めている形になっています
+## VMからの情報(class/shape/flag...)を<br>動的に集めている形になっています
 
 <Footnotes>
 コンパイルするタイミングで元のYARV命令列に戻しています
