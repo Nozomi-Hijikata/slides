@@ -1341,5 +1341,60 @@ layout: center
 
 ## TODO: Side Exit / Frameの解説
 
-<!-- 間に合えばPatchpointも入れたい -->
-<!-- TODO: mark executables調べて盛り込む-->
+---
+layout: center
+---
+
+## TODO: Memory Mark Executableの解説
+
+---
+layout: center
+---
+
+## TODO: SSAの解説
+
+---
+layout: center
+---
+
+## 実際に行われているいくつかの最適化手法をみていきましょう
+
+---
+layout: center
+---
+
+## TODO: Constant Folding
+
+---
+layout: center
+---
+
+## TODO: Eliminate Dead Code
+
+---
+layout: center
+---
+
+## TODO: Clean CFG
+
+---
+layout: default
+---
+
+## 他にも
+
+- 冗長なPatchpoint/CheckInterruptsの削除
+- xxx?
+
+
+---
+layout: default
+---
+
+## まだまだやれる余地はあります
+
+- CSE(共通部分式の削除, LVN/GVN)
+- ISEQ呼び出しのInline化
+- Loop変形
+- xxx?
+
