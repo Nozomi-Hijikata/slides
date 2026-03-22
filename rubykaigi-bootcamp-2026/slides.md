@@ -1650,13 +1650,13 @@ layout: center
 layout: center
 ---
 
-## ZJITではYJITからアーキテクチャを変更することで、<br>いくつかの恩恵を得られるようになったわけですが、
+## ZJITではYJITからアーキテクチャを変更することで、<br>種々の恩恵を得られるようになったわけですが、
 
 ---
 layout: center
 ---
 
-## xxx
+## いくつかの特徴を見ていきましょう
 
 ---
 layout: center
