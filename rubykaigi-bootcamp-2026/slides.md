@@ -13,7 +13,7 @@ mdc: true
 ---
 
 # RubyKaigi 2026 予習Bootcamp 
-### 速習JITコンパイラ
+### Walking around CRuby's JIT Compiler
 
 ### 
 
@@ -1210,12 +1210,130 @@ layout: default
 ※2: <a href="https://llvm.org/pubs/2010-03-VEE-VMKit.pdf" target="_blank">Geoffray, N., Thomas, G., Lawall, J., Muller, G., & Folliot, B. (2010).</a>
 </Footnotes>
 
-<!-- 以下TODO -->
 ---
 layout: center
 ---
 
-## TODO: Profilingの解説
+## さて、最適化に必要な情報はどこで集めているのでしょうか
+
+---
+layout: center
+---
+
+## VM側から必要な情報をJIT側に受け渡す形で実現しています
+
+---
+layout: default
+---
+
+## 一定の閾値に達すると、Profiling用にYARVの命令列を差し替えます
+
+```c{*|6-10}{maxHeight: '320px', class:'!children:text-xs'}
+static inline rb_jit_func_t zjit_compile(rb_execution_context_t *ec) {
+    const rb_iseq_t *iseq = ec->cfp->iseq;
+    struct rb_iseq_constant_body *body = ISEQ_BODY(iseq);
+    if (body->jit_entry == NULL) {
+        body->jit_entry_calls++;
+        // At profile-threshold, rewrite some of the YARV instructions
+        // to zjit_* instructions to profile these instructions.
+        if (body->jit_entry_calls == rb_zjit_profile_threshold) {
+            rb_zjit_profile_enable(iseq);
+        }
+        // At call-threshold, compile the ISEQ with ZJIT.
+        if (body->jit_entry_calls == rb_zjit_call_threshold) {
+            rb_zjit_compile_iseq(iseq, false);
+        }
+    }
+    return body->jit_entry;
+}
+```
+
+---
+layout: center
+---
+
+```c{*|11|13}{maxHeight: '320px', class:'!children:text-xs'}
+// Convert a given ISEQ's instructions to zjit_* instructions
+void
+rb_zjit_profile_enable(const rb_iseq_t *iseq)
+{
+    // This table encodes an opcode into the instruction's address
+    const void *const *insn_table = rb_vm_get_insns_address_table();
+
+    unsigned int insn_idx = 0;
+    while (insn_idx < iseq->body->iseq_size) {
+        int insn = rb_vm_insn_addr2opcode((void *)iseq->body->iseq_encoded[insn_idx]);
+        int zjit_insn = vm_bare_insn_to_zjit_insn(insn);
+        if (insn != zjit_insn) {
+            iseq->body->iseq_encoded[insn_idx] = (VALUE)insn_table[zjit_insn];
+        }
+        insn_idx += insn_len(insn);
+    }
+}
+```
+---
+layout: center
+---
+
+```c{*}{class:'!children:text-lg'}
+MAYBE_UNUSED(static int vm_bare_insn_to_zjit_insn(int insn));
+static int
+vm_bare_insn_to_zjit_insn(int insn)
+{
+    switch (insn) {
+      case BIN(send):
+        return BIN(zjit_send);
+      case BIN(opt_send_without_block):
+        return BIN(zjit_opt_send_without_block);
+      // ...
+    }
+}
+```
+
+---
+layout: center
+---
+
+```c{*|5|6}{class:'!children:text-lg'}
+/* insn zjit_send(...)(...)(...) */
+INSN_ENTRY(zjit_send)
+{
+    START_OF_ORIGINAL_INSN(zjit_send);
+    rb_zjit_profile_insn(BIN(send), ec);
+    DISPATCH_ORIGINAL_INSN(send);
+    END_INSN(zjit_send);
+}
+```
+
+---
+layout: center
+---
+
+```rust{*|5}{class:'!children:text-base'}
+/// API called from zjit_* instruction. opcode is the bare (non-zjit_*) instruction.
+#[unsafe(no_mangle)]
+pub extern "C" fn rb_zjit_profile_insn(bare_opcode: u32, ec: EcPtr) {
+    with_vm_lock(src_loc!(), || {
+        with_time_stat(profile_time_ns, || profile_insn(bare_opcode as ruby_vminsn_type, ec));
+    });
+}
+```
+
+---
+layout: center
+---
+
+## という具合にですね
+
+---
+layout: center
+---
+
+## VMからの情報(class/shape/flag...)を動的に集めている形になっています
+
+<Footnotes>
+コンパイルするタイミングで元のYARV命令列に戻しています
+</Footnotes>
 
 ---
 layout: center
