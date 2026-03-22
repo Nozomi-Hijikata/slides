@@ -1644,6 +1644,24 @@ layout: center
 layout: center
 ---
 
+# ちょっと議論のレイヤーを(H)IRに戻しましょう
+
+---
+layout: center
+---
+
+## ZJITではYJITからアーキテクチャを変更することで、<br>いくつかの恩恵を得られるようになったわけですが、
+
+---
+layout: center
+---
+
+## xxx
+
+---
+layout: center
+---
+
 ## TODO: SSAの解説
 
 ---
