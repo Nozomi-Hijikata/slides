@@ -1216,6 +1216,8 @@ layout: center
 
 ## さて、最適化に必要な情報はどこで集めているのでしょうか
 
+メソッド呼び出しを特殊化する際に、Classを決め打つために利用等しているわけですよね
+
 ---
 layout: center
 ---
@@ -1228,7 +1230,7 @@ layout: default
 
 ## 一定の閾値に達すると、Profiling用にYARVの命令列を差し替えます
 
-```c{*|6-10}{maxHeight: '320px', class:'!children:text-xs'}
+```c{*|6-10}{maxHeight: '420px', class:'!children:text-base'}
 static inline rb_jit_func_t zjit_compile(rb_execution_context_t *ec) {
     const rb_iseq_t *iseq = ec->cfp->iseq;
     struct rb_iseq_constant_body *body = ISEQ_BODY(iseq);
@@ -1252,7 +1254,7 @@ static inline rb_jit_func_t zjit_compile(rb_execution_context_t *ec) {
 layout: center
 ---
 
-```c{*|11|13}{maxHeight: '320px', class:'!children:text-xs'}
+```c{*|11|13}{maxHeight: '420px', class:'!children:text-base'}
 // Convert a given ISEQ's instructions to zjit_* instructions
 void
 rb_zjit_profile_enable(const rb_iseq_t *iseq)
@@ -1331,21 +1333,312 @@ layout: center
 
 ## VMからの情報(class/shape/flag...)を<br>動的に集めている形になっています
 
+ちなみに、コンパイルするタイミングで元のYARV命令列に戻しています
+
+---
+layout: center
+---
+
+## Profilingの話はそれ自体でそこそこボリュームがあるので<br>今日はこの辺にしておいて、
+
+※またどこかでまとめて話すかもしれません
+
+---
+layout: center
+---
+
+# 閑話休題
+
+---
+layout: center
+---
+
+## ここまでの話を聞いて、
+
+---
+layout: center
+---
+
+## JIT Codeはどこにあって、<br>どうしてそれがRubyのプロセスから実行できるのか
+
+---
+layout: center
+---
+
+## 気になりますよね
+
+
+---
+layout: default
+---
+
+## ZJITの初期化プロセスを追ってみましょう
+
+
+```rust{*|5-8}{maxHeight: '350px', class:'!children:text-xs'}
+impl ZJITState {
+    /// Initialize the ZJIT globals. Return the address of the JIT entry trampoline.
+    pub fn init() -> *const u8 {
+        let mut cb = {
+            let mem_block = VirtualMem::alloc(get_option!(exec_mem_bytes), Some(get_option!(mem_bytes)));
+            let mem_block = Rc::new(RefCell::new(mem_block));
+
+            CodeBlock::new(mem_block.clone(), get_option_ref!(dump_disasm).is_some())
+        };
+        // ...
+    }
+}
+```
+
+---
+layout: default
+---
+
+### `rb_jit_reserve_addr_space`が重要
+
+```rust{*|4}{maxHeight: '400px', class:'!children:text-xs'}
+impl VirtualMem {
+    /// Allocate a VirtualMem insntace with a requested size
+    pub fn alloc(exec_mem_bytes: usize, mem_bytes: Option<usize>) -> Self {
+        let virt_block: *mut u8 = unsafe { rb_jit_reserve_addr_space(exec_mem_bytes as u32) };
+
+        // Memory protection syscalls need page-aligned addresses, so check it here. Assuming
+        // `virt_block` is page-aligned, `second_half` should be page-aligned as long as the
+        // page size in bytes is a power of two 2¹⁹ or smaller. This is because the user
+        // requested size is half of mem_option × 2²⁰ as it's in MiB.
+        //
+        // Basically, we don't support x86-64 2MiB and 1GiB pages. ARMv8 can do up to 64KiB
+        // (2¹⁶ bytes) pages, which should be fine. 4KiB pages seem to be the most popular though.
+        let page_size = unsafe { rb_jit_get_page_size() };
+        assert_eq!(
+            virt_block as usize % page_size as usize, 0,
+            "Start of virtual address block should be page-aligned",
+        );
+
+        Self::new(sys::SystemAllocator {}, page_size, NonNull::new(virt_block).unwrap(), exec_mem_bytes, mem_bytes)
+    }
+}
+```
+
+---
+layout: default
+---
+### `mmap` syscallで一定サイズのアドレスを確保している
+
+<ul>
+  <li>default 64MiBで領域を仮想アドレス空間に確保</li>
+  <li>最初は権限を<code>PROT_NONE</code>で設定(アクセス権限なし)</li>
+  <li>ファイルをマップするわけではないので、MAP形式は<code>ANONYMOUS</code>を利用</li>
+</ul>
+
+```c{*|9-16}{class:'!children:text-xs'}
+// Address space reservation. Memory pages are mapped on an as needed basis.
+// See the Rust mm module for details.
+uint8_t *
+rb_jit_reserve_addr_space(uint32_t mem_size)
+{
+    uint8_t *mem_block;
+    // On MacOS and other platforms
+    // Try to map a chunk of memory as executable
+    mem_block = mmap(
+        (void *)rb_jit_reserve_addr_space,
+        mem_size,
+        PROT_NONE,
+        MAP_PRIVATE | MAP_ANONYMOUS,
+        -1,
+        0
+    );
+    // ...
+    return mem_block;
+}
+```
+
+---
+layout: default
+---
+
+### 確保後にpage-alignedかどうかをチェックする
+
+確保したページの権限を後述する`mprotect`で都度操作するが、<br>それがページ単位（通常16KiBなど）でしかできないので境界面が揃っているかを念のためチェックする
+
+```rust{*|6-14}{maxHeight: '400px', class:'!children:text-xs'}
+impl VirtualMem {
+    /// Allocate a VirtualMem insntace with a requested size
+    pub fn alloc(exec_mem_bytes: usize, mem_bytes: Option<usize>) -> Self {
+        let virt_block: *mut u8 = unsafe { rb_jit_reserve_addr_space(exec_mem_bytes as u32) };
+
+        // Memory protection syscalls need page-aligned addresses, so check it here. Assuming
+        // `virt_block` is page-aligned.
+        let page_size = unsafe { rb_jit_get_page_size() };
+        assert_eq!(
+            virt_block as usize % page_size as usize, 0,
+            "Start of virtual address block should be page-aligned",
+        );
+
+        Self::new(sys::SystemAllocator {}, page_size, NonNull::new(virt_block).unwrap(), exec_mem_bytes, mem_bytes)
+    }
+}
+```
+
+
+---
+layout: default
+---
+
+### 確保したページの権限をasmをemitするたびに都度必要に応じて更新していく
+
+```rust{*|6-14}{maxHeight: '400px', class:'!children:text-xs'}
+pub fn write_byte(&mut self, write_ptr: CodePtr, byte: u8) -> Result<(), WriteError> {
+    let page_size = self.page_size_bytes;
+    let raw = write_ptr.raw_ptr(self) as *mut u8;
+    let page_addr = (raw as usize / page_size) * page_size;
+    if self.current_write_page != Some(page_addr) {
+        let start = self.region_start.as_ptr() as usize;
+        let mapped_end = start + self.mapped_region_bytes;
+        let whole_end = start + self.region_size_bytes;
+        let raw_addr = raw as usize;
+        if (start..mapped_end).contains(&raw_addr) {
+            // 以前使ったページに再度書く。
+            // いま RX かもしれないので、この1ページを RW に戻す。
+            if !self.allocator.mark_writable(page_addr as *const _, page_size as u32) {
+                return Err(FailedPageMapping);
+            }
+        } else if (mapped_end..whole_end).contains(&raw_addr) {
+            // まだ未使用の予約領域に初めて書く。
+            // 必要な分のページを新しく RW にする。
+            let alloc_size = (page_addr + page_size) - mapped_end;
+
+            if !self.allocator.mark_writable(mapped_end as *const u8, alloc_size as u32) {
+                return Err(FailedPageMapping);
+            }
+            self.mapped_region_bytes += alloc_size;
+        } else {
+            return Err(OutOfBounds);
+        }
+        self.current_write_page = Some(page_addr);
+    }
+    unsafe { raw.write(byte) };
+    Ok(())
+}
+
+```
+
 <Footnotes>
-コンパイルするタイミングで元のYARV命令列に戻しています
+上記コードは説明のために簡略化・一部改変
 </Footnotes>
 
 ---
 layout: center
 ---
 
-## TODO: Side Exit / Frameの解説
+### `mprotect` syscallで都度ページの権限を更新
+
+大事なのは`W^X`の考え方で、同時にWriteとExecuteが存在しないようにしている
+
+書き込みも実行もできてしまうとセキュリティホールとなりうるからですね
+```c
+bool
+rb_jit_mark_writable(void *mem_block, uint32_t mem_size)
+{
+    return mprotect(mem_block, mem_size, PROT_READ | PROT_WRITE) == 0;
+}
+```
+
+<Footnotes>
+ref: <a>W^X</a href="https://en.wikipedia.org/wiki/W%5EX">
+</Footnotes>
+
+---
+layout: default
+---
+
+### 故にコンパイル完了時にRXにしている
+
+```rust{*|14}{maxHeight: '350px', class:'!children:text-xs'}
+/// CRuby API to compile a given ISEQ.
+/// If jit_exception is true, compile JIT code for handling exceptions.
+/// See jit_compile_exception() for details.
+#[unsafe(no_mangle)]
+pub extern "C" fn rb_zjit_iseq_gen_entry_point(iseq: IseqPtr, jit_exception: bool) -> *const u8 {
+    // Take a lock to avoid writing to ISEQ in parallel with Ractors.
+    // with_vm_lock() does nothing if the program doesn't use Ractors.
+    with_vm_lock(src_loc!(), || {
+        let cb = ZJITState::get_code_block();
+        let mut code_ptr = with_time_stat(compile_time_ns, || gen_iseq_entry_point(cb, iseq, jit_exception));
+        // ...
+        // Always mark the code region executable if asm.compile() has been used.
+        // We need to do this even if code_ptr is None because gen_iseq() may have already used asm.compile().
+        cb.mark_all_executable();
+
+        code_ptr.map_or(std::ptr::null(), |ptr| ptr.raw_ptr(cb))
+    })
+}
+```
+
+---
+layout: default
+---
+
+### また明示的にCPUの命令キャッシュ(`i-cache`)をクリアする
+
+L1/L2キャッシュの話ですね。
+
+armの場合は明示的にclearが必要
+
+```c
+// Invalidate icache for arm64.
+// `start` is inclusive and `end` is exclusive.
+void
+rb_jit_icache_invalidate(void *start, void *end)
+{
+    // Clear/invalidate the instruction cache. Compiles to nothing on x86_64
+    // but required on ARM before running freshly written code.
+    // On Darwin it's the same as calling sys_icache_invalidate().
+#ifdef __GNUC__
+    __builtin___clear_cache(start, end);
+#elif defined(__aarch64__)
+#error No instruction cache clear available with this compiler on Aarch64!
+#endif
+}
+```
+
+---
+layout: default
+---
+
+### ここまでの流れをまとめると原理的には↓と同じ
+
+```c{*}{maxHeight: '450px', class:'!children:text-xs'}
+#include <sys/mman.h>
+#include <string.h>
+#include <stdio.h>
+#include <unistd.h>
+
+int main(void) {
+    unsigned char code[] = {
+        0x60, 0x00, 0x80, 0x52, // mov w0, #3
+        0xc0, 0x03, 0x5f, 0xd6  // ret
+    };
+    size_t pagesize = (size_t)sysconf(_SC_PAGESIZE);
+    void *buf = mmap(NULL, pagesize, PROT_READ | PROT_WRITE,
+                     MAP_PRIVATE | MAP_ANON, -1, 0);
+    if (buf == MAP_FAILED) return 1;
+    memcpy(buf, code, sizeof(code));
+    __builtin___clear_cache((char *)buf, (char *)buf + sizeof(code));
+
+    if (mprotect(buf, pagesize, PROT_READ | PROT_EXEC) != 0) return 1;
+
+    int (*fn)(void) = (int (*)(void))buf;
+    printf("%d\n", fn()); // 3
+    return 0;
+}
+```
 
 ---
 layout: center
 ---
 
-## TODO: Memory Mark Executableの解説
+# また一歩理解できた気がしますね！
 
 ---
 layout: center
@@ -1398,3 +1691,11 @@ layout: default
 - Loop変形
 - xxx?
 
+
+<!-- やるかわからん -->
+
+---
+layout: center
+---
+
+## TODO: Side Exit / Frameの解説
