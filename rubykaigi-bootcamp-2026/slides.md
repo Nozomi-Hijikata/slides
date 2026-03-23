@@ -1202,7 +1202,7 @@ layout: default
 
 全部が全部一気にコンパイルするとbootstrapに遅くなってしまう上に、<br>無駄にメモリも食うので可能な限りOn-demand Compilationをしているということなんですね。
 
-似たようなことはJava VM実装の一つであるJakes RVM<span class='text-xs'>※1</span>だったり、VMKit<span class='text-xs'>※2</span>でもやられていたりします
+似たようなことはJava VM実装の一つであるJikes RVM<span class='text-xs'>※1</span>だったり、VMKit<span class='text-xs'>※2</span>でもやられていたりします
 
 
 <Footnotes>
