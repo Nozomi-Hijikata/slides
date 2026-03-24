@@ -2008,6 +2008,14 @@ layout: center
   <img src='/public/rubykaigi2026-talk-2.png' class='w-3/4'/>
 </div>
 
+---
+layout: center
+---
+
+<div class='flex justify-center' >
+  <img src='/public/rubykaigi2026-talk-2.png' class='w-3/4'/>
+</div>
+
 
 ---
 layout: center
