@@ -1969,10 +1969,50 @@ layout: default
 - Sparse conditional constant propagation
 
 
+---
+layout: center
+---
+
+## めちゃくちゃ面白くないですか
 
 ---
-layout: default
+layout: center
 ---
 
+# 今日の内容としては以上ですが、
 
-# TODO: RubyKaigiセッションの紹介!!
+---
+layout: center
+---
+
+# RubyKaigi 2026でも面白いセッションが目白押し
+
+---
+layout: center
+---
+
+<div class='flex justify-center' >
+  <img src='/public/rubykaigi2026-talk-1.png' class='w-3/4'/>
+</div>
+
+---
+layout: center
+---
+
+<div class='flex justify-center' >
+  <img src='/public/rubykaigi2026-talk-2.png' class='w-3/4'/>
+</div>
+
+
+---
+layout: center
+---
+
+## みんなさんの挑戦を期待します！
+
+
+---
+layout: center
+---
+
+## おわり！！🎉
