@@ -1907,7 +1907,7 @@ layout: default
 ### Dead Code Elimination (不要コード除去)
 
 - **使われていない命令**をコンパイル時に除去する
-- 副作用のない命令のみが除去対象（副作用 = Memory/Control/Stack等への書き込み）
+- 副作用のない命令のみが除去対象（副作用 = Memory/Control/Stack等への書き込みなど）
 
 <div class="flex justify-center gap-8 mt-2 items-start">
 <v-click>
@@ -1953,6 +1953,7 @@ bb3(v11, v12, v13):
 
 <Footnotes>
 副作用自体はEffect systemとして内部で命令ごとに分類がされている。その話はまた今度...
+
 SSAであるからこそ、def-useが明確なので、全ての代入を追う必要がなく、それぞれの命令のoperandをみるだけで削除ができる。
 </Footnotes>
 
