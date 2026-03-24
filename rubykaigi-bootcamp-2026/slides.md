@@ -1964,12 +1964,14 @@ layout: default
 
 ## まだまだやれる余地はあります
 
-- Common Subexpression Elimination(共通部分式の削除(CSE), LVN)
-- Global Value Numbering(GVN)
-- ISEQ呼び出しのInline化
-- 演算の強度低減
-- Sparse conditional constant propagation
-- ... and more!!
+<ul>
+  <v-click><li>Common Subexpression Elimination (共通部分式の削除, LVN)</li></v-click>
+  <v-click><li>Global Value Numbering (GVN)</li></v-click>
+  <v-click><li>ISEQ呼び出しのInline化</li></v-click>
+  <v-click><li>演算の強度低減</li></v-click>
+  <v-click><li>Sparse Conditional Constant Propagation</li></v-click>
+  <v-click><li>... and more!!</li></v-click>
+</ul>
 
 
 ---
