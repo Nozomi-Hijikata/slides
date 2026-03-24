@@ -1667,30 +1667,20 @@ layout: default
 - 全ての変数が**一度だけ定義**される中間表現の形式
 - 変数の性質を単純にすることで、様々なコンパイラ最適化を簡略化し改善できる
 
-<div class="flex gap-8 mt-4 items-start">
-<div>
-
-```
-y := 1
+<div class="flex mt-4 items-start">
+<div class="w-5/12">
+<pre class="!p-4 text-sm !leading-relaxed">y := 1
 y := 2
-x := y
-```
-
-`x` が使う `y` はどちらの定義か起因かを判定するためには<br>別途解析が必要
-
+x := y</pre>
+<p class="text-sm mt-2"><code>x</code> が使う <code>y</code> はどちらの定義に起因するかを<br>判定するためには別途解析が必要</p>
 </div>
 <v-click>
-<div class="text-lg mt-4">→</div>
-<div>
-
-```
-y1 := 1
+<div class="text-lg mt-6 mx-4">→</div>
+<div class="w-5/12">
+<pre class="!p-4 text-sm !leading-relaxed">y1 := 1
 y2 := 2
-x1 := y2
-```
-
-`x1` は `y2` を使う / `y1` は未使用であることがわかる <br>→ **不要コード除去も自明**
-
+x1 := y2</pre>
+<p class="text-sm mt-2"><code>x1</code> は <code>y2</code> を使う / <code>y1</code> は未使用であることがわかる<br>→ <strong>不要コード除去も自明</strong></p>
 </div>
 </v-click>
 </div>
@@ -1706,6 +1696,63 @@ layout: center
 ---
 
 ## 実際に行われているいくつかの最適化手法をみていきましょう
+
+---
+layout: default
+---
+
+### Dead Code Elimination (不要コード除去)
+
+- **使われていない命令**をコンパイル時に除去する
+- 副作用のない命令のみが除去対象※
+
+<div class="flex justify-center gap-6 mt-2 items-start">
+<v-click>
+<div>
+
+```rb
+def test(a, b)
+  a + b  # 結果を使っていない
+  5
+end
+```
+
+```{*}{class:'!children:text-xs'}
+bb3(v11, v12, v13):
+  PatchPoint MethodRedefined(Integer, +)
+  v32:Fixnum = GuardType v12, Fixnum
+  v33:Fixnum = GuardType v13, Fixnum
+  v34:Fixnum = FixnumAdd v32, v33
+  v24:Fixnum[5] = Const Value(5)
+  Return v24
+```
+
+</div>
+</v-click>
+<v-click>
+<div class="text-lg mt-12">→</div>
+<div>
+
+```{*}{class:'!children:text-xs'}
+bb3(v11, v12, v13):
+  PatchPoint MethodRedefined(Integer, +)
+  v32:Fixnum = GuardType v12, Fixnum
+  v33:Fixnum = GuardType v13, Fixnum
+  v24:Fixnum[5] = Const Value(5)
+  Return v24
+```
+
+`FixnumAdd` は副作用なし & 結果未使用 → 除去
+
+</div>
+</v-click>
+</div>
+
+
+<Footnotes>
+副作用自体はEffect systemとして内部で命令ごとに分類がされている。その話はまた今度...
+</Footnotes>
+
 
 ---
 layout: default
@@ -1776,7 +1823,7 @@ layout: default
 - 条件が定数と分かれば、**分岐自体を消せる**
 - 常にtrue → `IfTrue` を除去(fallthrough) / 常にfalse → `IfTrue` を `Jump` に変換
 
-<div class="flex justify-center gap-6 mt-2 items-start">
+<div class="flex justify-center gap-4 mt-2 items-start">
 <v-click>
 <div>
 
@@ -1791,26 +1838,34 @@ def test
 end
 ```
 
-`cond` は常に `true`
+```{*}{class:'!children:text-xs'}
+bb3(v8, v9):
+  v13:TrueClass = Const Value(true)
+  v19:CBool[true] = Test v13
+  IfFalse v19, bb4(v8, v20)
+  v25:Fixnum[3] = Const Value(3)
+  Return v25
+bb4(v30, v31):
+  v35 = Const Value(4)
+  Return v35
+```
 
 </div>
 </v-click>
 <v-click>
-<div class="text-lg mt-8">→</div>
-</v-click>
-<v-click>
+<div class="text-lg mt-16">→</div>
 <div>
 
 ```{*}{class:'!children:text-xs'}
-bb3():
+bb3(v8, v9):
   v13:TrueClass = Const Value(true)
   CheckInterrupts
   v25:Fixnum[3] = Const Value(3)
   Return v25
 ```
 
-- `IfTrue` が除去され、true側に直行
-- else側(bb4)は到達不能になり除去
+- `Test`/`IfFalse` が除去、true側に直行
+- bb4は到達不能になり除去
 - 分岐命令がゼロに
 
 </div>
@@ -1822,56 +1877,7 @@ bb3():
 </Footnotes>
 
 
----
-layout: default
----
 
-### Dead Code Elimination (不要コード除去)
-
-- **使われていない命令**をコンパイル時に除去する
-- 副作用のない命令(`is_elidable`)のみが除去対象
-
-<div class="flex justify-center gap-6 mt-2 items-start">
-<v-click>
-<div>
-
-```rb
-def test(a, b)
-  a + b  # 結果を使っていない
-  5
-end
-```
-
-```{*}{class:'!children:text-xs'}
-bb3(v11, v12, v13):
-  PatchPoint MethodRedefined(Integer, +)
-  v32:Fixnum = GuardType v12, Fixnum
-  v33:Fixnum = GuardType v13, Fixnum
-  v34:Fixnum = FixnumAdd v32, v33
-  v24:Fixnum[5] = Const Value(5)
-  Return v24
-```
-
-</div>
-</v-click>
-<v-click>
-<div class="text-lg mt-12">→</div>
-<div>
-
-```{*}{class:'!children:text-xs'}
-bb3(v11, v12, v13):
-  PatchPoint MethodRedefined(Integer, +)
-  v32:Fixnum = GuardType v12, Fixnum
-  v33:Fixnum = GuardType v13, Fixnum
-  v24:Fixnum[5] = Const Value(5)
-  Return v24
-```
-
-`FixnumAdd` は副作用なし & 結果未使用 → 除去
-
-</div>
-</v-click>
-</div>
 
 
 ---
