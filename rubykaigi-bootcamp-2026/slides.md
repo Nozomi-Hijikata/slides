@@ -1967,6 +1967,7 @@ layout: default
 - ISEQ呼び出しのInline化
 - 演算の強度低減
 - Sparse conditional constant propagation
+- ... and more!!
 
 
 ---
