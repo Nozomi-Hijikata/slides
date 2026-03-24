@@ -1701,58 +1701,24 @@ layout: center
 layout: default
 ---
 
-### Dead Code Elimination (不要コード除去)
+### ZJITの最適化パイプライン
 
-- **使われていない命令**をコンパイル時に除去する
-- 副作用のない命令のみが除去対象※
-
-<div class="flex justify-center gap-6 mt-2 items-start">
-<v-click>
-<div>
-
-```rb
-def test(a, b)
-  a + b  # 結果を使っていない
-  5
-end
-```
-
-```{*}{class:'!children:text-xs'}
-bb3(v11, v12, v13):
-  PatchPoint MethodRedefined(Integer, +)
-  v32:Fixnum = GuardType v12, Fixnum
-  v33:Fixnum = GuardType v13, Fixnum
-  v34:Fixnum = FixnumAdd v32, v33
-  v24:Fixnum[5] = Const Value(5)
-  Return v24
-```
-
-</div>
-</v-click>
-<v-click>
-<div class="text-lg mt-12">→</div>
-<div>
-
-```{*}{class:'!children:text-xs'}
-bb3(v11, v12, v13):
-  PatchPoint MethodRedefined(Integer, +)
-  v32:Fixnum = GuardType v12, Fixnum
-  v33:Fixnum = GuardType v13, Fixnum
-  v24:Fixnum[5] = Const Value(5)
-  Return v24
-```
-
-`FixnumAdd` は副作用なし & 結果未使用 → 除去
-
-</div>
-</v-click>
-</div>
-
+<ol class='text-base'>
+  <li><code>type_specialize</code> - 型情報に基づく命令の特殊化</li>
+  <li><code>inline</code> - インライン展開</li>
+  <li><code>optimize_getivar</code> - インスタンス変数アクセスの最適化</li>
+  <li><code>optimize_c_calls</code> - C関数呼び出しの最適化</li>
+  <li><code>optimize_load_store</code> - ロード/ストアの最適化</li>
+  <li><strong><code>fold_constants</code> - 定数畳み込み</strong></li>
+  <li><strong><code>clean_cfg</code> - CFGの簡略化</strong></li>
+  <li><code>remove_redundant_patch_points</code> - 重複PatchPointの除去</li>
+  <li><code>remove_duplicate_check_interrupts</code> - 重複割り込みチェックの除去</li>
+  <li><strong><code>eliminate_dead_code</code> - 不要コード除去</strong></li>
+</ol>
 
 <Footnotes>
-副作用自体はEffect systemとして内部で命令ごとに分類がされている。その話はまた今度...
+太字の3つをこの後みていきます
 </Footnotes>
-
 
 ---
 layout: default
@@ -1763,7 +1729,7 @@ layout: default
 - コンパイル時にオペランドが定数であれば、**実行前に計算を済ませる**
 - 結果を `Const` 命令に置き換えて、実行時の計算を削除
 
-<div class="flex justify-center gap-6 mt-2 items-start">
+<div class="flex justify-center gap-8 mt-2 items-start">
 <v-click>
 <div>
 
@@ -1823,7 +1789,7 @@ layout: default
 - 条件が定数と分かれば、**分岐自体を消せる**
 - 常にtrue → `IfTrue` を除去(fallthrough) / 常にfalse → `IfTrue` を `Jump` に変換
 
-<div class="flex justify-center gap-4 mt-2 items-start">
+<div class="flex justify-center gap-8 mt-2 items-start">
 <v-click>
 <div>
 
@@ -1877,23 +1843,117 @@ bb3(v8, v9):
 </Footnotes>
 
 
-
-
-
 ---
-layout: center
+layout: default
 ---
 
-## TODO: Clean CFG
+### Clean CFG (制御フローグラフの簡略化)
+
+- Jumpで繋がるだけのブロックを**1つに結合**する
+- 条件: Jump先のブロックへの入口が1つだけであること
+
+<div class="flex justify-center gap-8 mt-2 items-start">
+<v-click>
+<div>
+
+<pre class="text-xs !leading-tight !px-6 !py-3">
+┌──────────────────────┐
+│ bb0():               │
+│   v0 = ...           │
+│   Jump bb1(v0)       │
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────────┐
+│ bb1(v1):             │
+│   v2 = FixnumAdd v1  │
+│   Return v2          │
+└──────────────────────┘
+</pre>
+
+bb1への入口はbb0からの1つだけ
+
+</div>
+</v-click>
+<v-click>
+<div class="text-lg mt-12">→</div>
+<div>
+
+<pre class="text-xs !leading-tight !px-6 !py-3">
+┌──────────────────────┐
+│ bb0():               │
+│   v0 = ...           │
+│   v2 = FixnumAdd v0  │
+│   Return v2          │
+└──────────────────────┘
+</pre>
+
+- Jumpが消え、bb1の命令がbb0に吸収
+- bb1のパラメータ `v1` は `v0` に統合
+- CFGがフラットになり後段の最適化が効きやすくなる
+
+</div>
+</v-click>
+</div>
+
+<Footnotes>
+入口が複数あるブロック(= linearでない)は結合できない
+</Footnotes>
 
 ---
 layout: default
 ---
 
-## 他にも
+### Dead Code Elimination (不要コード除去)
 
-- 冗長なPatchpoint/CheckInterruptsの削除
-- xxx?
+- **使われていない命令**をコンパイル時に除去する
+- 副作用のない命令のみが除去対象（副作用 = Memory/Control/Stack等への書き込み）
+
+<div class="flex justify-center gap-8 mt-2 items-start">
+<v-click>
+<div>
+
+```rb
+def test(a, b)
+  a + b  # 結果を使っていない
+  5
+end
+```
+
+```{*}{class:'!children:text-xs'}
+bb3(v11, v12, v13):
+  PatchPoint MethodRedefined(Integer, +)
+  v32:Fixnum = GuardType v12, Fixnum
+  v33:Fixnum = GuardType v13, Fixnum
+  v34:Fixnum = FixnumAdd v32, v33
+  v24:Fixnum[5] = Const Value(5)
+  Return v24
+```
+
+</div>
+</v-click>
+<v-click>
+<div class="text-lg mt-12">→</div>
+<div>
+
+```{*}{class:'!children:text-xs'}
+bb3(v11, v12, v13):
+  PatchPoint MethodRedefined(Integer, +)
+  v32:Fixnum = GuardType v12, Fixnum
+  v33:Fixnum = GuardType v13, Fixnum
+  v24:Fixnum[5] = Const Value(5)
+  Return v24
+```
+
+`FixnumAdd` は副作用なし & 結果未使用 → 除去
+
+</div>
+</v-click>
+</div>
+
+<Footnotes>
+副作用自体はEffect systemとして内部で命令ごとに分類がされている。その話はまた今度...
+</Footnotes>
 
 
 ---
@@ -1902,16 +1962,17 @@ layout: default
 
 ## まだまだやれる余地はあります
 
-- CSE(共通部分式の削除, LVN/GVN)
+- Common Subexpression Elimination(共通部分式の削除(CSE), LVN)
+- Global Value Numbering(GVN)
 - ISEQ呼び出しのInline化
-- Loop変形
-- xxx?
+- 演算の強度低減
+- Sparse conditional constant propagation
 
 
-<!-- やるかわからん -->
 
 ---
-layout: center
+layout: default
 ---
 
-## TODO: Side Exit / Frameの解説
+
+# TODO: RubyKaigiセッションの紹介!!
