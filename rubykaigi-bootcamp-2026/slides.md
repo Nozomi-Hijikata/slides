@@ -2005,7 +2005,7 @@ layout: center
 ---
 
 <div class='flex justify-center' >
-  <img src='/public/rubykaigi2026-talk-2.png' class='w-3/4'/>
+  <img src='/public/rubykaigi2026-talk-3.png' class='w-3/4'/>
 </div>
 
 ---
