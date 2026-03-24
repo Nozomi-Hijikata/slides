@@ -1659,10 +1659,47 @@ layout: center
 ## いくつかの特徴を見ていきましょう
 
 ---
-layout: center
+layout: default
 ---
 
-## TODO: SSAの解説
+### SSA (Static Single Assignment, 静的単一代入)
+
+- 全ての変数が**一度だけ定義**される中間表現の形式
+- 変数の性質を単純にすることで、様々なコンパイラ最適化を簡略化し改善できる
+
+<div class="flex gap-8 mt-4 items-start">
+<div>
+
+```
+y := 1
+y := 2
+x := y
+```
+
+`x` が使う `y` はどちらの定義か起因かを判定するためには<br>別途解析が必要
+
+</div>
+<v-click>
+<div class="text-lg mt-4">→</div>
+<div>
+
+```
+y1 := 1
+y2 := 2
+x1 := y2
+```
+
+`x1` は `y2` を使う / `y1` は未使用であることがわかる <br>→ **不要コード除去も自明**
+
+</div>
+</v-click>
+</div>
+
+<v-click>
+
+- LLVM IR, Go(SSA backend), Rust(MIR), Swift(SIL)など多くのコンパイラで採用されている
+
+</v-click>
 
 ---
 layout: center
@@ -1671,16 +1708,171 @@ layout: center
 ## 実際に行われているいくつかの最適化手法をみていきましょう
 
 ---
-layout: center
+layout: default
 ---
 
-## TODO: Constant Folding
+### Constant Folding (定数畳み込み)
+
+- コンパイル時にオペランドが定数であれば、**実行前に計算を済ませる**
+- 結果を `Const` 命令に置き換えて、実行時の計算を削除
+
+<div class="flex justify-center gap-6 mt-2 items-start">
+<v-click>
+<div>
+
+```rb
+def test
+  1 + 2 + 3
+end
+```
+
+```{*}{class:'!children:text-xs'}
+bb3():
+  v10:Fixnum[1] = Const Value(1)
+  v12:Fixnum[2] = Const Value(2)
+  PatchPoint MethodRedefined(Integer, +)
+  v20:Fixnum = FixnumAdd v10, v12
+  v16:Fixnum[3] = Const Value(3)
+  v24:Fixnum = FixnumAdd v20, v16
+  Return v24
+```
+
+</div>
+</v-click>
+<v-click>
+<div class="text-lg mt-12">→</div>
+</v-click>
+<v-click>
+<div>
+
+```{*}{class:'!children:text-xs'}
+bb3():
+  v10:Fixnum[1] = Const Value(1)
+  v12:Fixnum[2] = Const Value(2)
+  PatchPoint MethodRedefined(Integer, +)
+  v33:Fixnum[6] = Const Value(6)
+  CheckInterrupts
+  Return v33
+```
+
+`1+2+3` がコンパイル時に `6` に畳み込まれる<br>
+元のConstはDCE(後段)で除去される
+
+</div>
+</v-click>
+</div>
+
+<Footnotes>
+FixnumAdd/Sub/Mult/Div等の算術演算、比較演算、GuardType、frozen objectのフィールドアクセスなどが対象<br>
+overflow検査付き(<code>checked_add</code>等)で安全に畳み込む
+</Footnotes>
 
 ---
-layout: center
+layout: default
 ---
 
-## TODO: Eliminate Dead Code
+### Constant Folding: 分岐の除去
+
+- 条件が定数と分かれば、**分岐自体を消せる**
+- 常にtrue → `IfTrue` を除去(fallthrough) / 常にfalse → `IfTrue` を `Jump` に変換
+
+<div class="flex justify-center gap-6 mt-2 items-start">
+<v-click>
+<div>
+
+```rb
+def test
+  cond = true
+  if cond
+    3
+  else
+    4
+  end
+end
+```
+
+`cond` は常に `true`
+
+</div>
+</v-click>
+<v-click>
+<div class="text-lg mt-8">→</div>
+</v-click>
+<v-click>
+<div>
+
+```{*}{class:'!children:text-xs'}
+bb3():
+  v13:TrueClass = Const Value(true)
+  CheckInterrupts
+  v25:Fixnum[3] = Const Value(3)
+  Return v25
+```
+
+- `IfTrue` が除去され、true側に直行
+- else側(bb4)は到達不能になり除去
+- 分岐命令がゼロに
+
+</div>
+</v-click>
+</div>
+
+<Footnotes>
+逆に条件が常にfalseなら<code>IfTrue</code>自体をdropし、fallthroughのみ残す
+</Footnotes>
+
+
+---
+layout: default
+---
+
+### Dead Code Elimination (不要コード除去)
+
+- **使われていない命令**をコンパイル時に除去する
+- 副作用のない命令(`is_elidable`)のみが除去対象
+
+<div class="flex justify-center gap-6 mt-2 items-start">
+<v-click>
+<div>
+
+```rb
+def test(a, b)
+  a + b  # 結果を使っていない
+  5
+end
+```
+
+```{*}{class:'!children:text-xs'}
+bb3(v11, v12, v13):
+  PatchPoint MethodRedefined(Integer, +)
+  v32:Fixnum = GuardType v12, Fixnum
+  v33:Fixnum = GuardType v13, Fixnum
+  v34:Fixnum = FixnumAdd v32, v33
+  v24:Fixnum[5] = Const Value(5)
+  Return v24
+```
+
+</div>
+</v-click>
+<v-click>
+<div class="text-lg mt-12">→</div>
+<div>
+
+```{*}{class:'!children:text-xs'}
+bb3(v11, v12, v13):
+  PatchPoint MethodRedefined(Integer, +)
+  v32:Fixnum = GuardType v12, Fixnum
+  v33:Fixnum = GuardType v13, Fixnum
+  v24:Fixnum[5] = Const Value(5)
+  Return v24
+```
+
+`FixnumAdd` は副作用なし & 結果未使用 → 除去
+
+</div>
+</v-click>
+</div>
+
 
 ---
 layout: center
