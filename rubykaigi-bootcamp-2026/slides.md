@@ -1968,7 +1968,6 @@ layout: default
   <v-click><li>Common Subexpression Elimination (共通部分式の削除, LVN)</li></v-click>
   <v-click><li>Global Value Numbering (GVN)</li></v-click>
   <v-click><li>ISEQ呼び出しのInline化</li></v-click>
-  <v-click><li>演算の強度低減</li></v-click>
   <v-click><li>Sparse Conditional Constant Propagation</li></v-click>
   <v-click><li>... and more!!</li></v-click>
 </ul>
@@ -1979,6 +1978,19 @@ layout: center
 ---
 
 ## めちゃくちゃ面白くないですか
+
+---
+layout: default
+---
+
+## 話せなかったこと
+
+<ul>
+  <v-click><li>Profilingの詳細（Monomorphic/Polymorphic...）</li></v-click>
+  <v-click><li>SideexitとFrameState</li></v-click>
+  <v-click><li>Patchpoint/Invariants</li></v-click>
+  <v-click><li>種々のSpecialize/特化処理</li></v-click>
+</ul>
 
 ---
 layout: center
