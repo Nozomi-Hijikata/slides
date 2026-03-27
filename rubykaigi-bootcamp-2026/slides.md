@@ -508,6 +508,8 @@ end
 <Footnotes>
 ZJITではbasic block argumentsを採用しており、ブロック間の値の受け渡しを引数で表現する cf. Phi function<br>
 ※上の図は説明のための概念図であり実態とは一致しない(ZJITではBBを分岐の片側しか作らない様にしている)
+
+厳密にはZJITのHIRはExtended Basic Blockなのだが、その話は割愛
 </Footnotes>
 
 ---
