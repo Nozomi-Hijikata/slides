@@ -81,7 +81,7 @@ layout: default
 
 ## 前提
 
-- ZJITはProfileをためてその情報を元に最適化をする
+- ZJITはProfileをためてその情報を元に最適化をする（e.g. より早い処理で置き換えたり、結果をたたみ込んだり）
 - VM側からYARVの命令列をProfile用に一時的に差し替える形でプロファイルをする
 
 ```c{*|11|13}{maxHeight: '320px', class:'!children:text-xs'}
@@ -109,7 +109,7 @@ rb_zjit_profile_enable(const rb_iseq_t *iseq)
 layout: default
 ---
 
-## Profileを元に、そのパスの最適化度合いを決める
+## 集めたProfileを元にそのパスの最適化度合いを決める
 
 ```rb
 @foo = 4
@@ -167,13 +167,18 @@ bb3(v6:BasicObject):
 
 </v-click>
 
+<v-click at="4">
+<Footnotes>
+論点から逸れるのでここでは最適化の中身自体は触れませんが、Compile時の情報を元に結果を畳み込んでいると思ってください
+</Footnotes>
+</v-click>
+
+
 ---
 layout: center
 ---
 
-## これで高速なパスに落とし込むことができました
-
-※GuardXXXなどで前提条件を担保している
+## これでProfleをもとに、<br>高速なパスに落とし込むことができました
 
 ---
 layout: center
@@ -197,13 +202,13 @@ layout: center
 layout: center
 ---
 
-### JIT側ではハンドリングできないので、<br>操作の意味を保つためにも、<br>VMに戻す必要がある
+## JIT側ではハンドリングできないので、<br>操作の意味を保つためにも、<br>VMに戻す必要がある
 
 ---
 layout: center
 ---
 
-## Side exit
+## Side Exit
 
 他の処理系だとdeopt(de-optimization)とか言ったりします
 
@@ -211,7 +216,7 @@ layout: center
 layout: center
 ---
 
-## 当然の用にSide exitはやりたくない
+## 当然の用にSide Exitはやりたくない
 JIT側での処理を増やせば増やすほど早くなる（逆も然り）
 
 ---
