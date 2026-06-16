@@ -393,10 +393,16 @@ bb4(v11:StringExact|NilClass):
 layout: center
 ---
 
+# いい感じですね
+
+---
+layout: center
+---
+
 ##  実際にこの理屈でRecompile基盤※を使って
 
 <Footnotes>
-※ありがたいことに基盤自体はk0kubunさん作で既にあった
+※Recompile基盤は k0kubunさんが既に整備してくれていたので、そちらを活用する形をとっています🙏
 </Footnotes>
 
 ---
@@ -413,13 +419,31 @@ layout: center
 ref: https://github.com/ruby/ruby/pull/16881
 </Footnotes>
 
+---
+layout: center
+---
+
+# 時間の都合でだいぶ駆け足&端折っていますが
 
 ---
 layout: center
 ---
 
+# とっても面白くないですか？
+
+他にももっと面白いテーマがたくさんある...!!!
+
+---
+layout: center
+---
+
+# ZJITに少しでも興味を持ってくれたら嬉しいです
+
+---
+layout: center
+---
 
 <div class='flex flex-col justify-center items-center' >
-  <h3>こんな形でコツコツ改善をしていたりします</h3>
+  <h3>自分も隙間を見てコツコツ改善をしていたりします</h3>
   <img src='/public/zjit-prs.png' class='w-1/2'/>
 </div>
