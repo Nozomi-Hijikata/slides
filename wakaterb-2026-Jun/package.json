@@ -1,0 +1,13 @@
+{
+  "name": "@slides/wakaterb-2026-jun",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "slidev --open",
+    "build": "slidev build",
+    "export": "slidev export"
+  },
+  "dependencies": {
+    "@slides/shared": "workspace:*"
+  }
+}

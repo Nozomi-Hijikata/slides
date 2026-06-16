@@ -40,6 +40,12 @@ importers:
 
   shared: {}
 
+  wakaterb-2026-Jun:
+    dependencies:
+      '@slides/shared':
+        specifier: workspace:*
+        version: link:../shared
+
   zentaikai-2026-Jan: {}
 
 packages:
