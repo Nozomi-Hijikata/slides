@@ -111,10 +111,61 @@ layout: default
 
 ## Profileを元に、そのパスの最適化度合いを決める
 
-- TODO: DefinedIvarの例, Ruby code, HIR Code
-- 時間の都合上細かい話はしないが、とにかく早くなっていると思ってください
+```rb
+@foo = 4
+def test = defined?(@foo)
+test;test
+```
 
-<!--時間の都合的にもうちょい説明を差し込めるかも？-->
+<v-click>
+<div class="flex gap-4 mt-2">
+<div class="flex-1">
+
+```{*|12}{class:'!children:text-xs', maxHeight:'320px'}
+Initial HIR:
+fn test@../test.rb:2:
+bb1():
+  EntryPoint interpreter
+  v1:BasicObject = LoadSelf
+  Jump bb3(v1)
+bb2():
+  EntryPoint JIT(0)
+  v4:BasicObject = LoadArg :self@0
+  Jump bb3(v4)
+bb3(v6:BasicObject):
+  v10:StringExact|NilClass = DefinedIvar v6, :@foo
+  CheckInterrupts
+  Return v10
+```
+
+</div>
+<div class="text-lg mt-24">→</div>
+<div class="flex-1">
+
+```{*|11-15}{class:'!children:text-xs', maxHeight:'320px'}
+Optimized HIR:
+fn test@../test.rb:2:
+bb1():
+  EntryPoint interpreter
+  v1:BasicObject = LoadSelf
+  Jump bb3(v1)
+bb2():
+  EntryPoint JIT(0)
+  v4:BasicObject = LoadArg :self@0
+  Jump bb3(v4)
+bb3(v6:BasicObject):
+  v16:HeapBasicObject = GuardType v6, HeapBasicObject
+  v17:CShape = LoadField v16, :shape_id@0x4
+  v18:CShape[0x80008] = GuardBitEquals v17, CShape(0x80008) recompile
+  v19:StringExact[VALUE(0x103ba9440)] = Const Value(VALUE(0x103ba9440))
+  CheckInterrupts
+  Return v19
+```
+
+</div>
+</div>
+
+</v-click>
 
 ---
 layout: center
@@ -168,3 +219,29 @@ layout: center
 ---
 
 # ではどうするか
+
+---
+layout: center
+---
+
+# プロファイルをやりなおしたらいいじゃないか
+
+---
+layout: center
+---
+
+# Recompile
+
+---
+layout: center
+---
+
+# Profileを新しく取り直す
+Profileがないケースや、漏れているケースのカバーができるようになる
+
+---
+layout: center
+---
+
+TODO: Recompileのimageを書いておく
+実装サンプルまではなくてもいい気がするが、HIRでdiffをとりたい
