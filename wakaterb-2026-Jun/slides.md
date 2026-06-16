@@ -12,17 +12,30 @@ transition: slide-left
 mdc: true
 ---
 
-# Slide Title
+# ZJITでの最適化: Recompile編
 
-Presentation subtitle
+wakate.rb #7 LT
+
+2026/06/22
 
 ---
-layout: center
+layout: default
 ---
 
-# First Slide
+# 自己紹介
 
-Content here
+- Nozomi Hijikata (@nozomemein)
+
+### プロフィール
+- 株式会社Techouseでエンジニアをしています
+- Ruby/Rails書いたり、Rust書いたり、モバイルアプリやったり、インフラやったり...
+- 24卒
+- 1児のパパ
+
+### 好きなもの
+- Compiler / 最適化
+- 勉強（最近は古代オリエントにハマり気味）
+
 
 ---
 layout: default
