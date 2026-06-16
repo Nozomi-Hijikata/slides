@@ -242,7 +242,7 @@ JITでハンドリングできない場合※に、VMに処理を戻す
 他の処理系だとdeopt(de-optimization)とか言ったりします
 
 <Footnotes>
-※そもそもJITでハンドリングできない理由はまちまち（Profileとは違う条件での実行、未対応のバイトコード、メソッド再定義、割り込み...）
+※そもそもJITでハンドリングできない理由はまちまち<br>（Profileとは違う条件での実行、未対応のバイトコード、メソッド再定義、割り込み...）
 </Footnotes>
 
 ---
@@ -275,8 +275,8 @@ layout: center
 ---
 
 # Profileを新しく取り直して、Compileをやり直す
-- 1. ↓Side ExitするたびにProfileをとって、カウンタが閾値になるまで待つ
-- 2. ↓古いISEQを無効化し、ISEQ単位でCompileをやり直す
+1. Side ExitするたびにProfileをとって、カウンタが閾値になるまで待つ
+2. 古いISEQを無効化し、ISEQ単位でCompileをやり直す
 
 Profileがないケースや、漏れているケースのカバーができるようになる
 
@@ -356,7 +356,7 @@ bb3(v6:HeapBasicObject):
 layout: center
 ---
 
-### Recompileすると、、、
+## Recompileすると、、、
 
 ---
 layout: default
