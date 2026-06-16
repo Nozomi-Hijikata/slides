@@ -184,7 +184,7 @@ bb3(v6:BasicObject):
 layout: center
 ---
 
-## これでProfleをもとに、<br>高速なパスに落とし込むことができました
+## これでProfileをもとに、<br>高速なパスに落とし込むことができました
 
 ---
 layout: center
@@ -249,7 +249,7 @@ JITでハンドリングできない場合※に、VMに処理を戻す
 layout: center
 ---
 
-## 当然の用にSide Exitはやりたくない
+## 当然のようにSide Exitはやりたくない
 JIT側での処理を増やせば増やすほど早くなる（逆も然り）
 
 ---
@@ -340,13 +340,13 @@ obj.instance_variable_set(:@a, 1)
 
 obj = C.new
 obj.instance_variable_set(:@b, 1) # @bしか持たないインスタンス
-50.times { obj.test } # bはcompileされたJITコードに存在しないので、sideexit...!!
+50.times { obj.test } # bはcompileされたJITコードに存在しないので、Side Exit...!!
 ```
 
 ```text{*|3}{class:'!children:text-xs', maxHeight:'320px'}
 bb3(v6:HeapBasicObject):
   v17:CShape = LoadField v6, :shape_id@0x4
-  v18:CShape[0x80008] = GuardBitEquals v17, CShape(0x80008) # ここでExitする
+  v18:CShape[0x80008] = GuardBitEquals v17, CShape(0x80008) # ここでSide Exitする
   v19:StringExact[VALUE(0x1017194d0)] = Const Value(VALUE(0x1017194d0))
   CheckInterrupts
   Return v19
@@ -388,3 +388,38 @@ bb4(v11:StringExact|NilClass):
   CheckInterrupts
   Return v11
 ```
+
+---
+layout: center
+---
+
+##  実際にこの理屈でRecompile基盤※を使って
+
+<Footnotes>
+※ありがたいことに基盤自体はk0kubunさん作で既にあった
+</Footnotes>
+
+---
+layout: center
+---
+
+## Side Exitをいくらか減らすことができた！！🎉
+
+<div class='flex justify-center' >
+  <img src='/public/zjit-recompile-stats.png' class='w-full'/>
+</div>
+
+<Footnotes>
+ref: https://github.com/ruby/ruby/pull/16881
+</Footnotes>
+
+
+---
+layout: center
+---
+
+
+<div class='flex flex-col justify-center items-center' >
+  <h3>こんな形でコツコツ改善をしていたりします</h3>
+  <img src='/public/zjit-prs.png' class='w-1/2'/>
+</div>
