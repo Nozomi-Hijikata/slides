@@ -15,3 +15,17 @@ table {
 th {
   font-size: 1rem;
 }
+
+.slidev-layout ul,
+.slidev-layout ol {
+  padding-left: 1.5rem;
+}
+.slidev-layout ul {
+  list-style-type: disc;
+}
+.slidev-layout ol {
+  list-style-type: decimal;
+}
+.slidev-layout ul ul {
+  list-style-type: circle;
+}
