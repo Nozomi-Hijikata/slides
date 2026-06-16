@@ -84,7 +84,10 @@ layout: default
 - ZJITはProfileをためてその情報を元に最適化をする（e.g. より早い処理で置き換えたり、結果をたたみ込んだり）
 - VM側からYARVの命令列をProfile用に一時的に差し替える形でプロファイルをする
 
-```c{*|11|13}{maxHeight: '320px', class:'!children:text-xs'}
+<v-click at="1">
+<div>
+
+```c{*|11|13}{at:2, maxHeight: '320px', class:'!children:text-xs'}
 // Convert a given ISEQ's instructions to zjit_* instructions
 void
 rb_zjit_profile_enable(const rb_iseq_t *iseq)
@@ -103,6 +106,9 @@ rb_zjit_profile_enable(const rb_iseq_t *iseq)
     }
 }
 ```
+
+</div>
+</v-click>
 
 
 ---
@@ -142,7 +148,7 @@ bb3(v6:BasicObject):
 <div class="text-lg mt-24">→</div>
 <div class="flex-1">
 
-```text{*|11-15}{at:3, class:'!children:text-xs', maxHeight:'320px'}
+```text{*|12-15}{at:3, class:'!children:text-xs', maxHeight:'320px'}
 Optimized HIR:
 fn test@../test.rb:2:
 bb1():
@@ -156,7 +162,7 @@ bb2():
 bb3(v6:BasicObject):
   v16:HeapBasicObject = GuardType v6, HeapBasicObject
   v17:CShape = LoadField v16, :shape_id@0x4
-  v18:CShape[0x80008] = GuardBitEquals v17, CShape(0x80008) recompile
+  v18:CShape[0x80008] = GuardBitEquals v17, CShape(0x80008)
   v19:StringExact[VALUE(0x103ba9440)] = Const Value(VALUE(0x103ba9440))
   CheckInterrupts
   Return v19
@@ -198,11 +204,32 @@ layout: center
 
 ## もし仮に前提条件を壊すパターンがくるとどうなる？
 
+```text{*|14}{class:'!children:text-xs', maxHeight:'320px'}
+Optimized HIR:
+fn test@../test.rb:2:
+bb1():
+  EntryPoint interpreter
+  v1:BasicObject = LoadSelf
+  Jump bb3(v1)
+bb2():
+  EntryPoint JIT(0)
+  v4:BasicObject = LoadArg :self@0
+  Jump bb3(v4)
+bb3(v6:BasicObject):
+  v16:HeapBasicObject = GuardType v6, HeapBasicObject
+  v17:CShape = LoadField v16, :shape_id@0x4
+  v18:CShape[0x80008] = GuardBitEquals v17, CShape(0x80008)
+  v19:StringExact[VALUE(0x103ba9440)] = Const Value(VALUE(0x103ba9440))
+  CheckInterrupts
+  Return v19
+```
+
 ---
 layout: center
 ---
 
-## JIT側ではハンドリングできないので、<br>操作の意味を保つためにも、<br>VMに戻す必要がある
+## JIT側ではハンドリングできないので、VMに戻す
+
 
 ---
 layout: center
@@ -210,7 +237,13 @@ layout: center
 
 ## Side Exit
 
+JITでハンドリングできない場合※に、VMに処理を戻す
+
 他の処理系だとdeopt(de-optimization)とか言ったりします
+
+<Footnotes>
+※そもそもJITでハンドリングできない理由はまちまち（Profileとは違う条件での実行、未対応のバイトコード、メソッド再定義、割り込み...）
+</Footnotes>
 
 ---
 layout: center
@@ -241,12 +274,123 @@ layout: center
 layout: center
 ---
 
-# Profileを新しく取り直す
+# Profileを新しく取り直して、Compileをやり直す
+- 1. ↓Side ExitするたびにProfileをとって、カウンタが閾値になるまで待つ
+- 2. ↓古いISEQを無効化し、ISEQ単位でCompileをやり直す
+
 Profileがないケースや、漏れているケースのカバーができるようになる
 
+<Footnotes>
+※もうちょい細かく分岐があるんですが、ざっくり書くとこんな感じです
+</Footnotes>
+
 ---
-layout: center
+layout: default
 ---
 
-TODO: Recompileのimageを書いておく
-実装サンプルまではなくてもいい気がするが、HIRでdiffをとりたい
+## 具体的な例で考えてみる
+
+```rb{*|2}
+class C
+  def test = defined?(@a)
+end
+obj = C.new
+obj.instance_variable_set(:@a, 1)
+50.times { obj.test } # @a存在化でprofile
+```
+
+<v-click>
+```text{*}{class:'!children:text-xs', maxHeight:'280px'}
+bb1():
+  EntryPoint interpreter
+  v1:HeapBasicObject = LoadSelf
+  Jump bb3(v1)
+bb2():
+  EntryPoint JIT(0)
+  v4:HeapBasicObject = LoadArg :self@0
+  Jump bb3(v4)
+bb3(v6:HeapBasicObject):
+  v17:CShape = LoadField v6, :shape_id@0x4
+  v18:CShape[0x80008] = GuardBitEquals v17, CShape(0x80008)
+  v19:StringExact[VALUE(0x1017194d0)] = Const Value(VALUE(0x1017194d0))
+  CheckInterrupts
+  Return v19
+```
+</v-click>
+
+<Footnotes>
+このような単一ProfileしかないパスをMonomorphicと言ったりします
+</Footnotes>
+
+---
+layout: default
+---
+
+## 具体的な例で考えてみる2
+
+```rb{*|8-10}
+class C
+  def test = defined?(@a)
+end
+obj = C.new
+obj.instance_variable_set(:@a, 1)
+50.times { obj.test } # @a存在化でprofile
+
+obj = C.new
+obj.instance_variable_set(:@b, 1) # @bしか持たないインスタンス
+50.times { obj.test } # bはcompileされたJITコードに存在しないので、sideexit...!!
+```
+
+```text{*|3}{class:'!children:text-xs', maxHeight:'320px'}
+bb3(v6:HeapBasicObject):
+  v17:CShape = LoadField v6, :shape_id@0x4
+  v18:CShape[0x80008] = GuardBitEquals v17, CShape(0x80008) # ここでExitする
+  v19:StringExact[VALUE(0x1017194d0)] = Const Value(VALUE(0x1017194d0))
+  CheckInterrupts
+  Return v19
+```
+
+
+---
+layout: default
+---
+
+## 具体的な例で考えてみる3
+
+```rb{*|8-10}
+class C
+  def test = defined?(@a)
+end
+obj = C.new
+obj.instance_variable_set(:@a, 1)
+50.times { obj.test } # @a存在化でprofile
+
+obj = C.new
+obj.instance_variable_set(:@b, 1) # @bしか持たないインスタンス
+50.times { obj.test } # Recompile後は、Side Exitせずに、新しいJIT Codeで実行される
+```
+
+```text{*|3}{class:'!children:text-xs', maxHeight:'320px'}
+bb3(v6:HeapBasicObject):
+  v12:CShape = LoadField v6, :shape_id@0x4
+  v13:CShape[0x80009] = Const CShape(0x80009)
+  v14:CBool = IsBitEqual v12, v13
+  CondBranch v14, bb5(), bb6()
+bb5():
+  v16:NilClass = Const Value(nil)
+  Jump bb4(v16)
+bb6():
+  v18:CShape = LoadField v6, :shape_id@0x4
+  v19:CShape[0x80008] = Const CShape(0x80008)
+  v20:CBool = IsBitEqual v18, v19
+  CondBranch v20, bb7(), bb8()
+bb7():
+  v22:StringExact[VALUE(0x1017194d0)] = Const Value(VALUE(0x1017194d0))
+  Jump bb4(v22)
+bb8():
+  v24:StringExact|NilClass = DefinedIvar v6, :@a
+  Jump bb4(v24)
+bb4(v11:StringExact|NilClass):
+  CheckInterrupts
+  Return v11
+```
