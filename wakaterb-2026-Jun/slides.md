@@ -318,9 +318,11 @@ bb3(v6:HeapBasicObject):
 ```
 </v-click>
 
+<v-click>
 <Footnotes>
 このような単一ProfileしかないパスをMonomorphicと言ったりします
 </Footnotes>
+</v-click>
 
 ---
 layout: default
@@ -350,6 +352,11 @@ bb3(v6:HeapBasicObject):
   Return v19
 ```
 
+---
+layout: center
+---
+
+### Recompileすると、、、
 
 ---
 layout: default
@@ -357,27 +364,14 @@ layout: default
 
 ## 具体的な例で考えてみる3
 
-```rb{*|8-10}
-class C
-  def test = defined?(@a)
-end
-obj = C.new
-obj.instance_variable_set(:@a, 1)
-50.times { obj.test } # @a存在化でprofile
-
-obj = C.new
-obj.instance_variable_set(:@b, 1) # @bしか持たないインスタンス
-50.times { obj.test } # Recompile後は、Side Exitせずに、新しいJIT Codeで実行される
-```
-
-```text{*|3}{class:'!children:text-xs', maxHeight:'320px'}
+```text{*|2-4|5|6-8|5|9-13|14-16|13|17-19|20-22}{class:'!children:text-xs', maxHeight:'420px'}
 bb3(v6:HeapBasicObject):
   v12:CShape = LoadField v6, :shape_id@0x4
   v13:CShape[0x80009] = Const CShape(0x80009)
   v14:CBool = IsBitEqual v12, v13
   CondBranch v14, bb5(), bb6()
 bb5():
-  v16:NilClass = Const Value(nil)
+  v16:NilClass = Const Value(nil) # @bだけのパス
   Jump bb4(v16)
 bb6():
   v18:CShape = LoadField v6, :shape_id@0x4
@@ -388,7 +382,7 @@ bb7():
   v22:StringExact[VALUE(0x1017194d0)] = Const Value(VALUE(0x1017194d0))
   Jump bb4(v22)
 bb8():
-  v24:StringExact|NilClass = DefinedIvar v6, :@a
+  v24:StringExact|NilClass = DefinedIvar v6, :@a # Fallbackの汎用パス
   Jump bb4(v24)
 bb4(v11:StringExact|NilClass):
   CheckInterrupts
