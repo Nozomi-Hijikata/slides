@@ -117,11 +117,11 @@ def test = defined?(@foo)
 test;test
 ```
 
-<v-click>
+<v-click at="1">
 <div class="flex gap-4 mt-2">
 <div class="flex-1">
 
-```{*|12}{class:'!children:text-xs', maxHeight:'320px'}
+```text{*|12}{at:2, class:'!children:text-xs', maxHeight:'320px'}
 Initial HIR:
 fn test@../test.rb:2:
 bb1():
@@ -142,7 +142,7 @@ bb3(v6:BasicObject):
 <div class="text-lg mt-24">→</div>
 <div class="flex-1">
 
-```{*|11-15}{class:'!children:text-xs', maxHeight:'320px'}
+```text{*|11-15}{at:3, class:'!children:text-xs', maxHeight:'320px'}
 Optimized HIR:
 fn test@../test.rb:2:
 bb1():
