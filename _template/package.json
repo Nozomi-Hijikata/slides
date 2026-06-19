@@ -1,5 +1,5 @@
 {
-  "name": "@slides/SLIDE_NAME",
+  "name": "SLIDE_NAME",
   "type": "module",
   "private": true,
   "scripts": {
@@ -8,6 +8,6 @@
     "export": "slidev export"
   },
   "dependencies": {
-    "@slides/shared": "workspace:*"
+    "shared": "workspace:*"
   }
 }

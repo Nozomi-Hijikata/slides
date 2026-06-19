@@ -1,5 +1,5 @@
 {
-  "name": "@slides/rubykaigi-bootcamp-2026",
+  "name": "rubykaigi-bootcamp-2026",
   "type": "module",
   "private": true,
   "scripts": {
@@ -8,6 +8,6 @@
     "export": "slidev export"
   },
   "dependencies": {
-    "@slides/shared": "workspace:*"
+    "shared": "workspace:*"
   }
 }

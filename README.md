@@ -5,7 +5,7 @@
 ## セットアップ
 
 ```bash
-pnpm install
+bun install
 ```
 
 ## 使い方
@@ -13,35 +13,44 @@ pnpm install
 ### 開発モード（スライドを編集しながらプレビュー）
 
 ```bash
-pnpm --filter @slides/rubykaigi-bootcamp-2025 dev
-pnpm --filter @slides/camp-lt-2025-oct dev
+bun --filter='./rubykaigi-bootcamp-2025' run dev
+bun --filter='./camp-lt-2025-oct'        run dev
 ```
 
 ### ビルド
 
 ```bash
-pnpm --filter @slides/rubykaigi-bootcamp-2025 build
-pnpm --filter @slides/camp-lt-2025-oct build
+bun --filter='./rubykaigi-bootcamp-2025' run build
+bun --filter='./camp-lt-2025-oct'        run build
+
+# 全スライドまとめてビルド
+bun --filter='*' run build
 ```
 
 ### PDFエクスポート
 
 ```bash
-pnpm --filter @slides/rubykaigi-bootcamp-2025 export
-pnpm --filter @slides/camp-lt-2025-oct export
+bun --filter='./rubykaigi-bootcamp-2025' run export
+bun --filter='./camp-lt-2025-oct'        run export
 ```
+
+> bun の `--filter` は **`'./folder'`** か **`'*'`** の形でしか効かない（exact name 指定が壊れている [oven-sh/bun#10322](https://github.com/oven-sh/bun/issues/10322)）。
+> また `./folder` で動かすには **フォルダ名と package.json の `name` フィールドが完全一致**している必要があるので、新規スライドは必ず小文字のディレクトリ名で作成する（`init:slide` が自動で小文字化する）。
 
 ## スライド一覧
 
 | パッケージ名 | ディレクトリ |
 |-------------|-------------|
-| @slides/rubykaigi-bootcamp-2025 | rubykaigi-bootcamp-2025/ |
-| @slides/camp-lt-2025-oct | Camp-LT-2025-Oct/ |
+| rubykaigi-bootcamp-2025 | rubykaigi-bootcamp-2025/ |
+| rubykaigi-bootcamp-2026 | rubykaigi-bootcamp-2026/ |
+| camp-lt-2025-oct | camp-lt-2025-oct/ |
+| zentaikai-2026-jan | zentaikai-2026-jan/ |
+| wakaterb-2026-jun | wakaterb-2026-jun/ |
 
 ## 新しいスライドを追加する
 
 ```bash
-pnpm init:slide my-new-slide
-pnpm install
-pnpm --filter @slides/my-new-slide dev
+bun run init:slide my-new-slide
+bun install
+bun --filter='./my-new-slide' run dev
 ```

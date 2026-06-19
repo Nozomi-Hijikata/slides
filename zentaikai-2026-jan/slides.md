@@ -94,6 +94,7 @@ layout: center
 </v-click>
 
 <div class='w-full flex justify-center mt-16'>
+
 ```mermaid {scale: 0.7}
 graph LR
     A[ソースコード] -->|字句解析| B[トークン列]
@@ -101,6 +102,7 @@ graph LR
     C -->|コンパイル| D[バイトコード]
     D -->|実行| E[VMが実行]
 ```
+
 </div>
 
 
@@ -132,17 +134,24 @@ layout: full
 ---
 
 <div class='flex flex-col justify-center h-full items-center'>
+
 <div class="flex items-center">
+
 <div>
+
 ```rb
 def foo(a,b)
   ...
 end
 foo(9,8)
 ```
+
 </div>
+
 <p class="text-2xl font-bold mx-8">→</p>
+
 <div>
+
 ``` {*}{maxHeight: '400px', class:'!children:text-xs'}
 == disasm: #<ISeq:<compiled>@<compiled>:1 (1,0)-(4,8)>
 0000 definemethod                           :foo, foo                 (   1)[Li]
@@ -152,19 +161,27 @@ foo(9,8)
 0008 send                                   <calldata!mid:foo, argc:2, FCALL|ARGS_SIMPLE>, nil
 0011 leave
 ```
+
 </div>
+
 </div>
 
 <div class="flex items-center">
+
 <div>
+
 ```rb
 ...
 puts a + b
 ...
 ```
+
 </div>
+
 <p class="text-2xl font-bold mx-8">→</p>
+
 <div>
+
 ```{*}{maxHeight: '400px', class:'!children:text-xs'}
 == disasm: #<ISeq:foo@<compiled>:1 (1,0)-(3,3)>
 local table (size: 2, argc: 2 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1, kwrest: -1])
@@ -176,8 +193,11 @@ local table (size: 2, argc: 2 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1,
 0010 send                                   <calldata!mid:puts, argc:1, FCALL|ARGS_SIMPLE>, nil
 0013 leave                                                            (   3)[Re]
 ```
+
 </div>
+
 </div>
+
 </div>
 
 
@@ -818,6 +838,7 @@ Top-20 not inlined C methods (100.0% of total 400,106,363):
              Array#join:          13 ( 0.0%)
           Array#compact:          13 ( 0.0%)
 ```
+
 </div>
 
 <div>
@@ -846,6 +867,7 @@ Top-20 not inlined C methods (100.0% of total 5,833):
              Array#join:     9 ( 0.2%)
        Module#const_set:     1 ( 0.0%)
 ```
+
 </div>
 </div>
 

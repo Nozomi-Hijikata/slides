@@ -2,13 +2,22 @@
   "name": "slides-monorepo",
   "type": "module",
   "private": true,
+  "workspaces": [
+    "shared",
+    "rubykaigi-bootcamp-2025",
+    "camp-lt-2025-oct",
+    "zentaikai-2026-jan",
+    "rubykaigi-bootcamp-2026",
+    "wakaterb-2026-jun"
+  ],
   "scripts": {
     "init:slide": "bash scripts/init-slide.sh"
   },
   "dependencies": {
-    "@slidev/cli": "^51.3.0",
+    "@slidev/cli": "^52.16.0",
     "@slidev/theme-default": "latest",
     "@slidev/theme-seriph": "latest",
+    "@slidev/types": "^52.16.0",
     "slidev-theme-geist": "^0.8.1",
     "vue": "^3.5.13"
   },

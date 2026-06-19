@@ -302,7 +302,7 @@ layout: center
     <p v-click class="font-bold text-xl">Dartのアプリケーション<span class="text-sm">※</span>は<br>このFlutterエンジンの上で動く<br><span class="text-sm font-normal">※AOTコンパイルされて`libapp.so`にまとめられる</span></p>
   </div>
   <div class='flex-1 flex justify-center mt-4'>
-    <img src='/app-anatomy.svg' class='w-1/2'/>
+    <img src='/public/app-anatomy.svg' class='w-1/2'/>
   </div>
 </div>
 
@@ -344,6 +344,7 @@ class MainActivity : FlutterActivity() {
     }
 }
 ```
+
 </div>
 <p class="text-2xl font-bold text-center">ログを埋め込んで、コールドスタート→ディープリンクを起動してみる</p>
 
