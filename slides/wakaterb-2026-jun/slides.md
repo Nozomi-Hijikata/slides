@@ -142,7 +142,7 @@ test;test
 <div class="flex gap-4 mt-2">
 <div class="flex-1">
 
-```text{*|12}{at:2, class:'!children:text-xs', maxHeight:'320px'}
+```text{*|1|12}{at:2, class:'!children:text-xs', maxHeight:'320px'}
 Initial HIR:
 fn test@../test.rb:2:
 bb1():
@@ -163,7 +163,7 @@ bb3(v6:BasicObject):
 <div class="text-lg mt-24">→</div>
 <div class="flex-1">
 
-```text{*|12-15}{at:3, class:'!children:text-xs', maxHeight:'320px'}
+```text{*|1|12-15}{at:3, class:'!children:text-xs', maxHeight:'320px'}
 Optimized HIR:
 fn test@../test.rb:2:
 bb1():
@@ -340,9 +340,8 @@ obj.instance_variable_set(:@a, 1)
 50.times { obj.test } # @a存在化でプロファイル
 ```
 
-<v-click>
 
-```text{*}{class:'!children:text-xs', maxHeight:'280px'}
+```text{*|11-13}{class:'!children:text-xs', maxHeight:'280px'}
 bb1():
   EntryPoint interpreter
   v1:HeapBasicObject = LoadSelf
@@ -359,7 +358,6 @@ bb3(v6:HeapBasicObject):
   Return v19
 ```
 
-</v-click>
 
 <v-click>
 <Footnotes>
