@@ -457,6 +457,12 @@ bb4(v11:StringExact|NilClass):
 
 </div>
 
+<v-click at="10">
+<Footnotes>
+※生成されるHIRは観測回数に依存して並べられ、今回は同数で新しいものが前になる形
+</Footnotes>
+</v-click>
+
 ---
 layout: center
 ---
@@ -499,7 +505,11 @@ layout: center
 
 # とっても面白くないですか？
 
+<v-click>
 他にももっと面白いテーマがたくさんある...!!!
+
+(SSA, (Extended)Basic Block, CSE/LVN, GVN, Constant Folding, Method Inliner, Reg Alloc...and more!!!)
+</v-click>
 
 ---
 layout: center
