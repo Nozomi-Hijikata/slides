@@ -4,7 +4,7 @@
 # https://github.com/oven-sh/bun/issues/23524
 linker = "hoisted"
 
-# Supply chain attack 対策: 公開から 3 日経過していないバージョンを拒否する。
+# Supply chain attack 対策: 公開から 7 日経過していないバージョンを拒否する。
 # 既存 bun.lock のパッケージには影響せず、新規解決時のみ適用される。
 # https://bun.com/docs/pm/cli/install#minimum-release-age
-minimumReleaseAge = 259200
+minimumReleaseAge = 604800
