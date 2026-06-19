@@ -23,5 +23,8 @@
   },
   "devDependencies": {
     "playwright-chromium": "^1.50.1"
+  },
+  "patchedDependencies": {
+    "slidev-theme-geist@0.8.1": "patches/slidev-theme-geist@0.8.1.patch"
   }
 }

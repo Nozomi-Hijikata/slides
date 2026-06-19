@@ -1,0 +1,5 @@
+[install]
+# patched dependencies (slidev-theme-geist) の transitive deps が
+# isolated linker だと symlink されないので hoisted を使う。
+# https://github.com/oven-sh/bun/issues/23524
+linker = "hoisted"

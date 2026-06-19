@@ -12,9 +12,11 @@ bun install
 
 ### 開発モード（スライドを編集しながらプレビュー）
 
+dev は対話キー (`r`/`o`/`e`/`q`) を使うので、`--filter` ではなく `cd` で実行する。
+
 ```bash
-bun --filter='./rubykaigi-bootcamp-2025' run dev
-bun --filter='./camp-lt-2025-oct'        run dev
+cd rubykaigi-bootcamp-2025 && bun run dev
+cd camp-lt-2025-oct        && bun run dev
 ```
 
 ### ビルド
@@ -34,9 +36,6 @@ bun --filter='./rubykaigi-bootcamp-2025' run export
 bun --filter='./camp-lt-2025-oct'        run export
 ```
 
-> bun の `--filter` は **`'./folder'`** か **`'*'`** の形でしか効かない（exact name 指定が壊れている [oven-sh/bun#10322](https://github.com/oven-sh/bun/issues/10322)）。
-> また `./folder` で動かすには **フォルダ名と package.json の `name` フィールドが完全一致**している必要があるので、新規スライドは必ず小文字のディレクトリ名で作成する（`init:slide` が自動で小文字化する）。
-
 ## スライド一覧
 
 | パッケージ名 | ディレクトリ |
@@ -52,5 +51,5 @@ bun --filter='./camp-lt-2025-oct'        run export
 ```bash
 bun run init:slide my-new-slide
 bun install
-bun --filter='./my-new-slide' run dev
+cd my-new-slide && bun run dev
 ```
