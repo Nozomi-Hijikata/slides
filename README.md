@@ -5,43 +5,51 @@
 ## セットアップ
 
 ```bash
-pnpm install
+bun install
 ```
 
 ## 使い方
 
 ### 開発モード（スライドを編集しながらプレビュー）
 
+dev は対話キー (`r`/`o`/`e`/`q`) を使うので、`--filter` ではなく `cd` で実行する。
+
 ```bash
-pnpm --filter @slides/rubykaigi-bootcamp-2025 dev
-pnpm --filter @slides/camp-lt-2025-oct dev
+cd slides/rubykaigi-bootcamp-2025 && bun run dev
+cd slides/camp-lt-2025-oct        && bun run dev
 ```
 
 ### ビルド
 
 ```bash
-pnpm --filter @slides/rubykaigi-bootcamp-2025 build
-pnpm --filter @slides/camp-lt-2025-oct build
+bun --filter='./slides/rubykaigi-bootcamp-2025' run build
+bun --filter='./slides/camp-lt-2025-oct'        run build
+
+# 全スライドまとめてビルド
+bun --filter='*' run build
 ```
 
 ### PDFエクスポート
 
 ```bash
-pnpm --filter @slides/rubykaigi-bootcamp-2025 export
-pnpm --filter @slides/camp-lt-2025-oct export
+bun --filter='./slides/rubykaigi-bootcamp-2025' run export
+bun --filter='./slides/camp-lt-2025-oct'        run export
 ```
 
 ## スライド一覧
 
 | パッケージ名 | ディレクトリ |
 |-------------|-------------|
-| @slides/rubykaigi-bootcamp-2025 | rubykaigi-bootcamp-2025/ |
-| @slides/camp-lt-2025-oct | Camp-LT-2025-Oct/ |
+| rubykaigi-bootcamp-2025 | slides/rubykaigi-bootcamp-2025/ |
+| rubykaigi-bootcamp-2026 | slides/rubykaigi-bootcamp-2026/ |
+| camp-lt-2025-oct | slides/camp-lt-2025-oct/ |
+| zentaikai-2026-jan | slides/zentaikai-2026-jan/ |
+| wakaterb-2026-jun | slides/wakaterb-2026-jun/ |
 
 ## 新しいスライドを追加する
 
 ```bash
-pnpm init:slide my-new-slide
-pnpm install
-pnpm --filter @slides/my-new-slide dev
+bun run init:slide my-new-slide
+bun install
+cd slides/my-new-slide && bun run dev
 ```

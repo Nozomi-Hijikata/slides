@@ -1,5 +1,5 @@
 {
-  "name": "@slides/wakaterb-2026-jun",
+  "name": "wakaterb-2026-jun",
   "type": "module",
   "private": true,
   "scripts": {
@@ -8,6 +8,6 @@
     "export": "slidev export"
   },
   "dependencies": {
-    "@slides/shared": "workspace:*"
+    "shared": "workspace:*"
   }
 }

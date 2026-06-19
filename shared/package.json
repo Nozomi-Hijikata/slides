@@ -1,5 +1,5 @@
 {
-  "name": "@slides/shared",
+  "name": "shared",
   "type": "module",
   "private": true,
   "exports": {

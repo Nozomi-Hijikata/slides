@@ -1,10 +1,13 @@
 {
-  "name": "@slides/camp-lt-2025-oct",
+  "name": "rubykaigi-bootcamp-2026",
   "type": "module",
   "private": true,
   "scripts": {
     "dev": "slidev --open",
     "build": "slidev build",
     "export": "slidev export"
+  },
+  "dependencies": {
+    "shared": "workspace:*"
   }
 }

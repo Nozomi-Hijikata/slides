@@ -149,12 +149,14 @@ layout: default
 ランタイムで逐次的にソースを解釈して実行するインタプリタ言語では、<br/>基本的には下記のような流れをとります
 </p>
 <div class='w-full flex justify-center mt-16' v-click>
+
 ```mermaid {scale: 1.0}
 graph LR
     A[ソースコード] -->|字句解析| B[トークン列]
     B -->|構文解析| C[構文木（AST）]
     C -->|実行| D[実行結果]
 ```
+
 </div>
 
 <v-click>
@@ -173,12 +175,14 @@ layout: default
 事前にコンパイルされるコンパイル型言語（AOT、Ahead of Timeとか言ったりします）だと<br/>下記のような作り方をします
 </p>
 <div class='w-full flex justify-center' v-click>
+
 ```mermaid {scale: 0.8}
 graph LR
   A[ソースコード<br/>sample.c] -->|コンパイラ| B[オブジェクトファイル<br/>sample.o]
   B -->|リンカ| C[実行可能なプログラム<br/>a.out]
   C -->|ロード| D[プロセスとして実行]
 ```
+
 </div>
 
 <p class='text-xl' v-click>
@@ -199,12 +203,14 @@ layout: default
 <span>Ruby1.8まで:</span> 基本はさっきの内容と<strong>同じ</strong>
 </p>
 <div class='w-full flex justify-center mt-16' v-click>
+
 ```mermaid {scale: 0.9}
 graph LR
     A[ソースコード] -->|字句解析| B[トークン列]
     B -->|構文解析| C[構文木（AST）]
     C -->|解釈・実行| D[実行結果]
 ```
+
 </div>
 
 <v-click>
@@ -284,6 +290,7 @@ layout: default
 # CRubyが実行されるまでのステップ
 
 <div class='w-full flex justify-center mt-16'>
+
 ```mermaid {scale: 0.9}
 graph LR
     A[ソースコード] -->|字句解析| B[トークン列]
@@ -293,6 +300,7 @@ graph LR
     class A finishStyle
     class B finishStyle
 ```
+
 </div>
 
 <v-click>
@@ -366,6 +374,7 @@ layout: default
 # CRubyが実行されるまでのステップ
 
 <div class='w-full flex justify-center mt-16'>
+
 ```mermaid {scale: 0.9}
 graph LR
     A[ソースコード] -->|字句解析| B[トークン列]
@@ -376,6 +385,7 @@ graph LR
     class B finishStyle
     class C finishStyle
 ```
+
 </div>
 
 <v-click>
@@ -433,6 +443,7 @@ layout: default
 <span>Ruby1.8まで:</span>
 </p>
 <div class='w-full flex justify-center mt-16'>
+
 ```mermaid {scale: 0.9}
 graph LR
     A[ソースコード] -->|字句解析| B[トークン列]
@@ -444,6 +455,7 @@ graph LR
     class C finishStyle
     class D finishStyle
 ```
+
 </div>
 
 <v-click>
@@ -452,6 +464,7 @@ graph LR
   <span class='text-sm'>(2007-12-25リリース)</span>
 </p>
 <div class='w-full flex justify-center mt-16'>
+
 ```mermaid {scale: 0.7}
 graph LR
     A[ソースコード] -->|字句解析| B[トークン列]
@@ -462,6 +475,7 @@ graph LR
     class D newVMStyle
     class E newVMStyle    
 ```
+
 </div>
 </v-click>
 
@@ -498,6 +512,7 @@ layout: default
 
 <div class="flex flex-col">
   <div class="flex justify-center">
+
 ``` 
 +-----------+  +-----------+  +-----------+
 | 言語 P1   |  | 言語 P2   |  | 言語 P3   |
@@ -533,6 +548,7 @@ layout: default
 
 <div class="flex flex-col">
   <div class="flex justify-center">
+
 ``` 
 +-----------------------------------------+
 |              Ruby プログラム            |
@@ -589,15 +605,18 @@ layout: full
 <div class='flex flex-col justify-center h-full items-center'>
 <div class="flex items-center">
 <div>
+
 ```rb
 def foo(a,b)
   ...
 end
 foo(9,8)
 ```
+
 </div>
 <p class="text-2xl font-bold mx-8">→</p>
 <div>
+
 ``` {*}{maxHeight: '400px', class:'!children:text-xs'}
 == disasm: #<ISeq:<compiled>@<compiled>:1 (1,0)-(4,8)>
 0000 definemethod                           :foo, foo                 (   1)[Li]
@@ -607,19 +626,23 @@ foo(9,8)
 0008 send                                   <calldata!mid:foo, argc:2, FCALL|ARGS_SIMPLE>, nil
 0011 leave
 ```
+
 </div>
 </div>
 
 <div class="flex items-center">
 <div>
+
 ```rb
 ...
 puts a + b
 ...
 ```
+
 </div>
 <p class="text-2xl font-bold mx-8">→</p>
 <div>
+
 ```{*}{maxHeight: '400px', class:'!children:text-xs'}
 == disasm: #<ISeq:foo@<compiled>:1 (1,0)-(3,3)>
 local table (size: 2, argc: 2 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1, kwrest: -1])
@@ -631,6 +654,7 @@ local table (size: 2, argc: 2 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1,
 0010 send                                   <calldata!mid:puts, argc:1, FCALL|ARGS_SIMPLE>, nil
 0013 leave                                                            (   3)[Re]
 ```
+
 </div>
 </div>
 </div>
@@ -642,6 +666,7 @@ layout: default
 # CRubyが実行されるまでのステップ
 
 <div class='w-full flex justify-center mt-16'>
+
 ```mermaid {scale: 0.8}
 graph LR
     A[ソースコード] -->|字句解析| B[トークン列]
@@ -654,6 +679,7 @@ graph LR
     class C finishStyle
     class D finishStyle
 ```
+
 </div>
 
 <v-click>
@@ -822,15 +848,18 @@ layout: full
 <div class='flex flex-col justify-center h-full items-center'>
 <div class="flex items-center" v-mark.circle.orange>
 <div>
+
 ```rb
 def foo(a,b)
   ...
 end
 foo(9,8)
 ```
+
 </div>
 <p class="text-2xl font-bold mx-8">→</p>
 <div>
+
 ``` {*}{maxHeight: '400px', class:'!children:text-xs'}
 == disasm: #<ISeq:<compiled>@<compiled>:1 (1,0)-(4,8)>
 0000 definemethod                           :foo, foo                 (   1)[Li]
@@ -840,19 +869,23 @@ foo(9,8)
 0008 send                                   <calldata!mid:foo, argc:2, FCALL|ARGS_SIMPLE>, nil
 0011 leave
 ```
+
 </div>
 </div>
 
 <div class="flex items-center">
 <div>
+
 ```rb
 ...
 puts a + b
 ...
 ```
+
 </div>
 <p class="text-2xl font-bold mx-8">→</p>
 <div>
+
 ```{*}{maxHeight: '400px', class:'!children:text-xs'}
 == disasm: #<ISeq:foo@<compiled>:1 (1,0)-(3,3)>
 local table (size: 2, argc: 2 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1, kwrest: -1])
@@ -864,6 +897,7 @@ local table (size: 2, argc: 2 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1,
 0010 send                                   <calldata!mid:puts, argc:1, FCALL|ARGS_SIMPLE>, nil
 0013 leave                                                            (   3)[Re]
 ```
+
 </div>
 </div>
 </div>
@@ -916,15 +950,18 @@ layout: full
 <div class='flex flex-col justify-center h-full items-center'>
 <div class="flex items-center">
 <div>
+
 ```rb
 def foo(a,b)
   ...
 end
 foo(9,8)
 ```
+
 </div>
 <p class="text-2xl font-bold mx-8">→</p>
 <div>
+
 ``` {*}{maxHeight: '400px', class:'!children:text-xs'}
 == disasm: #<ISeq:<compiled>@<compiled>:1 (1,0)-(4,8)>
 0000 definemethod                           :foo, foo                 (   1)[Li]
@@ -934,19 +971,23 @@ foo(9,8)
 0008 send                                   <calldata!mid:foo, argc:2, FCALL|ARGS_SIMPLE>, nil
 0011 leave
 ```
+
 </div>
 </div>
 
 <div class="flex items-center" v-mark.circle.orange>
 <div>
+
 ```rb
 ...
 puts a + b
 ...
 ```
+
 </div>
 <p class="text-2xl font-bold mx-8">→</p>
 <div>
+
 ```{*}{maxHeight: '400px', class:'!children:text-xs'}
 == disasm: #<ISeq:foo@<compiled>:1 (1,0)-(3,3)>
 local table (size: 2, argc: 2 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1, kwrest: -1])
@@ -958,6 +999,7 @@ local table (size: 2, argc: 2 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1,
 0010 send                                   <calldata!mid:puts, argc:1, FCALL|ARGS_SIMPLE>, nil
 0013 leave                                                            (   3)[Re]
 ```
+
 </div>
 </div>
 </div>
