@@ -160,10 +160,12 @@ bb3(v6:BasicObject):
 ```
 
 </div>
-<div class="text-lg mt-24">→</div>
-<div class="flex-1">
 
-```text{*|1|12-15}{at:3, class:'!children:text-xs', maxHeight:'320px'}
+<div class="text-lg mt-24" v-click="4">→</div>
+
+<div class="flex-1" v-click="4">
+
+```text{*|1|12-15}{at:5, class:'!children:text-xs', maxHeight:'320px'}
 Optimized HIR:
 fn test@../test.rb:2:
 bb1():
@@ -188,7 +190,7 @@ bb3(v6:BasicObject):
 
 </v-click>
 
-<v-click at="4">
+<v-click at="7">
 <Footnotes>
 論点から逸れるのでここでは最適化の中身自体は触れませんが、Compile時の情報を元に結果を畳み込んでいると思ってください
 </Footnotes>
@@ -405,6 +407,27 @@ layout: default
 
 ## 具体的な例で考えてみる3
 
+<div class="flex gap-4 mt-2">
+
+<div class="flex-1">
+
+```rb{class:'!children:text-xs', maxHeight:'420px'}
+class C
+  def test = defined?(@a)
+end
+obj = C.new
+obj.instance_variable_set(:@a, 1)
+50.times { obj.test }
+
+obj = C.new
+obj.instance_variable_set(:@b, 1)
+50.times { obj.test }
+```
+
+</div>
+
+<div class="flex-1">
+
 ```text{*|2-4|5|6-8|5|9-13|14-16|13|17-19|20-22}{class:'!children:text-xs', maxHeight:'420px'}
 bb3(v6:HeapBasicObject):
   v12:CShape = LoadField v6, :shape_id@0x4
@@ -429,6 +452,10 @@ bb4(v11:StringExact|NilClass):
   CheckInterrupts
   Return v11
 ```
+
+</div>
+
+</div>
 
 ---
 layout: center
