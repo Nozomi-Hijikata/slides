@@ -4,11 +4,7 @@
   "private": true,
   "workspaces": [
     "shared",
-    "rubykaigi-bootcamp-2025",
-    "camp-lt-2025-oct",
-    "zentaikai-2026-jan",
-    "rubykaigi-bootcamp-2026",
-    "wakaterb-2026-jun"
+    "slides/*"
   ],
   "scripts": {
     "init:slide": "bun scripts/init-slide.ts"

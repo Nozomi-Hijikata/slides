@@ -16,28 +16,28 @@
         "playwright-chromium": "^1.50.1",
       },
     },
-    "camp-lt-2025-oct": {
+    "shared": {
+      "name": "shared",
+    },
+    "slides/camp-lt-2025-oct": {
       "name": "camp-lt-2025-oct",
     },
-    "rubykaigi-bootcamp-2025": {
+    "slides/rubykaigi-bootcamp-2025": {
       "name": "rubykaigi-bootcamp-2025",
     },
-    "rubykaigi-bootcamp-2026": {
+    "slides/rubykaigi-bootcamp-2026": {
       "name": "rubykaigi-bootcamp-2026",
       "dependencies": {
         "shared": "workspace:*",
       },
     },
-    "shared": {
-      "name": "shared",
-    },
-    "wakaterb-2026-jun": {
+    "slides/wakaterb-2026-jun": {
       "name": "wakaterb-2026-jun",
       "dependencies": {
         "shared": "workspace:*",
       },
     },
-    "zentaikai-2026-jan": {
+    "slides/zentaikai-2026-jan": {
       "name": "zentaikai-2026-jan",
     },
   },
@@ -535,7 +535,7 @@
 
     "cac": ["cac@7.0.0", "", {}, "sha512-tixWYgm5ZoOD+3g6UTea91eow5z6AAHaho3g0V9CNSNb45gM8SmflpAc+GRd1InC4AqN/07Unrgp56Y94N9hJQ=="],
 
-    "camp-lt-2025-oct": ["camp-lt-2025-oct@workspace:camp-lt-2025-oct"],
+    "camp-lt-2025-oct": ["camp-lt-2025-oct@workspace:slides/camp-lt-2025-oct"],
 
     "caniuse-lite": ["caniuse-lite@1.0.30001799", "", {}, "sha512-hG1bReV+OUU+MOqK4t/ZWI0tZOyz3rqS9XuhOUz1cIcbwBKjOyJEJuw9ER5JuNyqxNk8u/JUVbGibBOL1yrjFw=="],
 
@@ -1139,9 +1139,9 @@
 
     "roughjs": ["roughjs@4.6.6", "", { "dependencies": { "hachure-fill": "^0.5.2", "path-data-parser": "^0.1.0", "points-on-curve": "^0.2.0", "points-on-path": "^0.2.1" } }, "sha512-ZUz/69+SYpFN/g/lUlo2FXcIjRkSu3nDarreVdGGndHEBJ6cXPdKguS8JGxwj5HA5xIbVKSmLgr5b3AWxtRfvQ=="],
 
-    "rubykaigi-bootcamp-2025": ["rubykaigi-bootcamp-2025@workspace:rubykaigi-bootcamp-2025"],
+    "rubykaigi-bootcamp-2025": ["rubykaigi-bootcamp-2025@workspace:slides/rubykaigi-bootcamp-2025"],
 
-    "rubykaigi-bootcamp-2026": ["rubykaigi-bootcamp-2026@workspace:rubykaigi-bootcamp-2026"],
+    "rubykaigi-bootcamp-2026": ["rubykaigi-bootcamp-2026@workspace:slides/rubykaigi-bootcamp-2026"],
 
     "run-applescript": ["run-applescript@7.1.0", "", {}, "sha512-DPe5pVFaAsinSaV6QjQ6gdiedWDcRCbUuiQfQa2wmWV7+xC9bGulGI8+TdRmoFkAPaBXk8CrAbnlY2ISniJ47Q=="],
 
@@ -1303,7 +1303,7 @@
 
     "vue-router": ["vue-router@5.1.0", "", { "dependencies": { "@babel/generator": "^8.0.0-rc.4", "@vue-macros/common": "^3.1.1", "@vue/devtools-api": "^8.1.2", "ast-walker-scope": "^0.9.0", "chokidar": "^5.0.0", "json5": "^2.2.3", "local-pkg": "^1.1.2", "magic-string": "^0.30.21", "mlly": "^1.8.2", "muggle-string": "^0.4.1", "pathe": "^2.0.3", "picomatch": "^4.0.3", "scule": "^1.3.0", "tinyglobby": "^0.2.16", "unplugin": "^3.0.0", "unplugin-utils": "^0.3.1", "yaml": "^2.9.0" }, "peerDependencies": { "@pinia/colada": ">=0.21.2", "@vue/compiler-sfc": "^3.5.34", "pinia": "^3.0.4", "vite": "^7.0.0 || ^8.0.0", "vue": "^3.5.34" }, "optionalPeers": ["@pinia/colada", "@vue/compiler-sfc", "pinia", "vite"] }, "sha512-HAbiLzLEHQwxPgvsbOJDAwtavszEgLwri6XfyrsPECIFez8+59xc9LofWVdc/HEaSRT822lJ8H9Ns38VVond5g=="],
 
-    "wakaterb-2026-jun": ["wakaterb-2026-jun@workspace:wakaterb-2026-jun"],
+    "wakaterb-2026-jun": ["wakaterb-2026-jun@workspace:slides/wakaterb-2026-jun"],
 
     "webpack-virtual-modules": ["webpack-virtual-modules@0.6.2", "", {}, "sha512-66/V2i5hQanC51vBQKPH4aI8NMAcBW59FVBs+rC7eGHupMyfn34q7rZIE+ETlJ+XTevqfUhVVBgSUNSW2flEUQ=="],
 
@@ -1323,7 +1323,7 @@
 
     "yargs-parser": ["yargs-parser@22.0.0", "", {}, "sha512-rwu/ClNdSMpkSrUb+d6BRsSkLUq1fmfsY6TOpYzTwvwkg1/NRG85KBy3kq++A8LKQwX6lsu+aWad+2khvuXrqw=="],
 
-    "zentaikai-2026-jan": ["zentaikai-2026-jan@workspace:zentaikai-2026-jan"],
+    "zentaikai-2026-jan": ["zentaikai-2026-jan@workspace:slides/zentaikai-2026-jan"],
 
     "zwitch": ["zwitch@2.0.4", "", {}, "sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A=="],
 

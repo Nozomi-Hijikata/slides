@@ -4,6 +4,7 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 
 const ROOT_DIR = path.resolve(import.meta.dir, '..')
+const SLIDES_DIR = path.join(ROOT_DIR, 'slides')
 
 const input = process.argv[2]
 if (!input) {
@@ -12,17 +13,19 @@ if (!input) {
 }
 
 // folder name and package.json `name` must match so that
-// `bun --filter='./<dir>'` resolves (oven-sh/bun#18241)
+// `bun --filter='./slides/<dir>'` resolves (oven-sh/bun#18241)
 const slideName = input.toLowerCase()
-const slideDir = path.join(ROOT_DIR, slideName)
+const slideDir = path.join(SLIDES_DIR, slideName)
+const slidePath = `slides/${slideName}`
 
 if (await fs.stat(slideDir).then(() => true, () => false)) {
-  console.error(`Error: Directory '${slideName}' already exists`)
+  console.error(`Error: Directory '${slidePath}' already exists`)
   process.exit(1)
 }
 
-console.log(`Creating slide: ${slideName}`)
+console.log(`Creating slide: ${slidePath}`)
 
+await fs.mkdir(SLIDES_DIR, { recursive: true })
 await $`cp -r ${path.join(ROOT_DIR, '_template')} ${slideDir}`
 
 const slidePkgPath = path.join(slideDir, 'package.json')
@@ -30,15 +33,9 @@ const slidePkg = await Bun.file(slidePkgPath).json()
 slidePkg.name = slideName
 await Bun.write(slidePkgPath, JSON.stringify(slidePkg, null, 2) + '\n')
 
-const rootPkgPath = path.join(ROOT_DIR, 'package.json')
-const rootPkg = await Bun.file(rootPkgPath).json()
-rootPkg.workspaces ??= []
-if (!rootPkg.workspaces.includes(slideName)) {
-  rootPkg.workspaces.push(slideName)
-  await Bun.write(rootPkgPath, JSON.stringify(rootPkg, null, 2) + '\n')
-}
+// workspaces is a glob (slides/*), no manual array update needed.
 
-console.log(`\nCreated: ${slideName}\n`)
+console.log(`\nCreated: ${slidePath}\n`)
 console.log('Next steps:')
 console.log('  1. bun install')
-console.log(`  2. cd ${slideName} && bun run dev`)
+console.log(`  2. cd ${slidePath} && bun run dev`)
