@@ -411,7 +411,7 @@ layout: default
 
 <div class="flex-1">
 
-```rb{class:'!children:text-xs', maxHeight:'420px'}
+```rb{*|*|*|8-10|*|*|4-6|*|*|*|}{class:'!children:text-xs', maxHeight:'420px'}
 class C
   def test = defined?(@a)
 end
@@ -428,7 +428,7 @@ obj.instance_variable_set(:@b, 1)
 
 <div class="flex-1">
 
-```text{*|2-4|5|6-8|5|9-13|14-16|13|17-19|20-22}{class:'!children:text-xs', maxHeight:'420px'}
+```text{*|2-4|5|6-8|5|9-13|14-16|13|17-19|20-22}{at: 1, class:'!children:text-xs', maxHeight:'420px'}
 bb3(v6:HeapBasicObject):
   v12:CShape = LoadField v6, :shape_id@0x4
   v13:CShape[0x80009] = Const CShape(0x80009)
