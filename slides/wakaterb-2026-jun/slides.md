@@ -52,13 +52,13 @@ layout: center
 layout: center
 ---
 
-# Ruby Internal
+<h1 class="!text-6xl">Ruby Internal</h1>
 
 ---
 layout: center
 ---
 
-<h1 class="text-8xl">ZJIT</h1>
+<h1 class="!text-6xl">ZJIT</h1>
 
 ---
 layout: center
@@ -86,13 +86,21 @@ layout: default
 
 ## 前提
 
-- ZJITはProfileをためてその情報を元に最適化をする（e.g. より早い処理で置き換えたり、結果をたたみ込んだり）
-- VM側からYARVの命令列をProfile用に一時的に差し替える形でプロファイルをする
+<v-click>
+- ZJITはプロファイルをためてその情報を元に最適化をする
 
-<v-click at="1">
+  - e.g. より早い処理で置き換えたり、結果をたたみ込んだり
+  
+</v-click>
+
+<v-click>
+- VM側からYARVの命令列をプロファイル用に一時的に差し替える形でプロファイルをする
+</v-click>
+
+<v-click at="3">
 <div>
 
-```c{*|11|13}{at:2, maxHeight: '320px', class:'!children:text-xs'}
+```c{*|11|13}{at:4, maxHeight: '320px', class:'!children:text-xs'}
 // Convert a given ISEQ's instructions to zjit_* instructions
 void
 rb_zjit_profile_enable(const rb_iseq_t *iseq)
@@ -120,11 +128,13 @@ rb_zjit_profile_enable(const rb_iseq_t *iseq)
 layout: default
 ---
 
-## 集めたProfileを元にそのパスの最適化度合いを決める
+## 集めたプロファイルを元にそのパスの最適化度合いを決める
 
 ```rb
 @foo = 4
-def test = defined?(@foo)
+def test 
+  defined?(@foo)
+end
 test;test
 ```
 
@@ -189,19 +199,19 @@ bb3(v6:BasicObject):
 layout: center
 ---
 
-## これでProfileをもとに、<br>高速なパスに落とし込むことができました
+## これでプロファイルをもとに、<br>高速なパスに落とし込むことができました
 
 ---
 layout: center
 ---
 
-## めでたしめでたし
+<h1 class="!text-4xl">めでたしめでたし</h1>
 
 ---
 layout: center
 ---
 
-## 本当に、、？
+<h1 class="!text-4xl">本当に、、？</h1>
 
 ---
 layout: center
@@ -233,8 +243,7 @@ bb3(v6:BasicObject):
 layout: center
 ---
 
-## JIT側ではハンドリングできないので、VMに戻す
-
+## JIT側ではハンドリングできないので、<span v-mark.red="1">VM</span>に戻す
 
 ---
 layout: center
@@ -242,20 +251,40 @@ layout: center
 
 ## Side Exit
 
+<v-click>
+
 JITでハンドリングできない場合※に、VMに処理を戻す
+
+</v-click>
+
+<v-click>
 
 他の処理系だとdeopt(de-optimization)とか言ったりします
 
+</v-click>
+
+<v-click>
 <Footnotes>
-※そもそもJITでハンドリングできない理由はまちまち<br>（Profileとは違う条件での実行、未対応のバイトコード、メソッド再定義、割り込み...）
+※そもそもJITでハンドリングできない理由はまちまち<br>（プロファイルとは違う条件での実行、未対応のバイトコード、メソッド再定義、割り込み...）
 </Footnotes>
+</v-click>
 
 ---
 layout: center
 ---
 
+
 ## 当然のようにSide Exitはやりたくない
 JIT側での処理を増やせば増やすほど早くなる（逆も然り）
+
+
+<v-click>
+
+> The first rule of just-in-time compilers is: you stay in JIT code. The second rule of JIT is: you STAY in JIT code!
+
+ref: https://railsatscale.com/2026-03-27-using-perfetto-in-zjit/
+
+</v-click>
 
 ---
 layout: center
@@ -279,11 +308,18 @@ layout: center
 layout: center
 ---
 
-# Profileを新しく取り直して、Compileをやり直す
-1. Side ExitするたびにProfileをとって、カウンタが閾値になるまで待つ
+## プロファイルを新しく取り直して、Compileをやり直す
+
+<v-click>
+
+1. Side Exitするたびにプロファイルをとる
 2. 古いISEQを無効化し、ISEQ単位でCompileをやり直す
 
-Profileがないケースや、漏れているケースのカバーができるようになる
+</v-click>
+
+<v-click>
+これにより、プロファイルがないケースや、漏れているケースのカバーができるようになる
+</v-click>
 
 <Footnotes>
 ※もうちょい細かく分岐があるんですが、ざっくり書くとこんな感じです
@@ -301,7 +337,7 @@ class C
 end
 obj = C.new
 obj.instance_variable_set(:@a, 1)
-50.times { obj.test } # @a存在化でprofile
+50.times { obj.test } # @a存在化でプロファイル
 ```
 
 <v-click>
@@ -327,7 +363,7 @@ bb3(v6:HeapBasicObject):
 
 <v-click>
 <Footnotes>
-このような単一ProfileしかないパスをMonomorphicと言ったりします
+このような単一プロファイルしかないパスをMonomorphicと言ったりします
 </Footnotes>
 </v-click>
 
@@ -343,7 +379,7 @@ class C
 end
 obj = C.new
 obj.instance_variable_set(:@a, 1)
-50.times { obj.test } # @a存在化でprofile
+50.times { obj.test } # @a存在化でプロファイル
 
 obj = C.new
 obj.instance_variable_set(:@b, 1) # @bしか持たないインスタンス
