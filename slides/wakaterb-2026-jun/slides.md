@@ -1,6 +1,5 @@
 ---
-theme: geist
-colorSchema: light
+theme: dracula
 
 layout: center
 
@@ -39,7 +38,7 @@ layout: default
 
 ### 好きなもの
 - Compiler / 最適化
-- 勉強
+- 勉強（古代オリエントにはまってます）
 
 </v-click>
 
@@ -48,6 +47,12 @@ layout: center
 ---
 
 # 今日のテーマは
+
+---
+layout: center
+---
+
+# Ruby Internal
 
 ---
 layout: center
@@ -73,7 +78,7 @@ layout: center
 layout: center
 ---
 
-## 今日はZJITで導入されているRecompileについて話します
+## 今日はZJITで導入されている<span v-mark.red="1">Recompile</span>について話します
 
 ---
 layout: default
@@ -300,6 +305,7 @@ obj.instance_variable_set(:@a, 1)
 ```
 
 <v-click>
+
 ```text{*}{class:'!children:text-xs', maxHeight:'280px'}
 bb1():
   EntryPoint interpreter
@@ -316,6 +322,7 @@ bb3(v6:HeapBasicObject):
   CheckInterrupts
   Return v19
 ```
+
 </v-click>
 
 <v-click>
