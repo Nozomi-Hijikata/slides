@@ -11,7 +11,7 @@
     "wakaterb-2026-jun"
   ],
   "scripts": {
-    "init:slide": "bash scripts/init-slide.sh"
+    "init:slide": "bun scripts/init-slide.ts"
   },
   "dependencies": {
     "@slidev/cli": "^52.16.0",
